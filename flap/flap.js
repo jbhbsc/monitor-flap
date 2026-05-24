@@ -25,6 +25,7 @@ const CFG = {
   buySlippageBps: Number(process.env.BUY_SLIPPAGE_BPS || 1200),
   sellSlippageBps: Number(process.env.SELL_SLIPPAGE_BPS || 1200),
   takeProfitMultiple: Number(process.env.TAKE_PROFIT_MULTIPLE || 5),
+  lossSellAfterSeconds: Number(process.env.LOSS_SELL_AFTER_SECONDS || 3600),
   pollMs: Number(process.env.PROFIT_POLL_MS || 5000),
   eventPollMs: Number(process.env.EVENT_POLL_MS || 1200),
   maxBlockRange: Number(process.env.MAX_BLOCK_RANGE || 20),
@@ -297,42 +298,47 @@ async function buyToken(candidate) {
   savePositions(positions);
 }
 async function sellHalf(position) {
-  if (CFG.dryRun) {
-    log("Dry run sell", `DRY_RUN=true; ${position.symbol} hit ${CFG.takeProfitMultiple}x, would sell half`);
-    return;
-  }
-  if (!wallet) throw new Error("DRY_RUN=false requires PRIVATE_KEY in .env");
-
   const token = position.token;
-  const tokenContract = new ethers.Contract(token, erc20Abi, wallet);
-  const balance = await tokenContract.balanceOf(wallet.address);
+  const tokenContract = new ethers.Contract(token, erc20Abi, provider);
+  const balance = wallet ? await tokenContract.balanceOf(wallet.address) : BigInt(position.balanceAtBuy || 0);
   const half = balance / 2n;
   if (half === 0n) return;
 
-  const allowance = await tokenContract.allowance(wallet.address, PORTAL);
-  if (allowance < half) {
-    const approveTx = await tokenContract.approve(PORTAL, ethers.MaxUint256);
-    log("Approve sent", `${position.symbol} ${approveTx.hash}`);
-    await approveTx.wait();
-  }
-
-  const expectedBnb = await quoteSell(token, half);
-  const minimumBnb = minOut(expectedBnb, CFG.sellSlippageBps);
-  const tx = await portal.swapExactInput({
-    inputToken: token,
-    outputToken: ZERO,
-    inputAmount: half,
-    minOutputAmount: minimumBnb,
-    permitData: "0x",
-  });
-  log("Sell sent", `${position.symbol} ${tx.hash}`);
-  await tx.wait();
+  await sellTokenAmount(position, half, "take-profit-half");
 
   const positions = loadPositions();
   positions[token.toLowerCase()].soldHalf = true;
   positions[token.toLowerCase()].soldAt = new Date().toISOString();
   savePositions(positions);
   log("Sell confirmed", `${position.symbol} sold half`);
+}
+async function sellTokenAmount(position, amount, reason) {
+  if (CFG.dryRun) {
+    log("Dry run sell", `DRY_RUN=true; ${position.symbol} ${reason}, would sell ${amount.toString()} token units`);
+    return;
+  }
+  if (!wallet) throw new Error("DRY_RUN=false requires PRIVATE_KEY in .env");
+
+  const token = position.token;
+  const tokenContract = new ethers.Contract(token, erc20Abi, wallet);
+  const allowance = await tokenContract.allowance(wallet.address, PORTAL);
+  if (allowance < amount) {
+    const approveTx = await tokenContract.approve(PORTAL, ethers.MaxUint256);
+    log("Approve sent", `${position.symbol} ${approveTx.hash}`);
+    await approveTx.wait();
+  }
+
+  const expectedBnb = await quoteSell(token, amount);
+  const minimumBnb = minOut(expectedBnb, CFG.sellSlippageBps);
+  const tx = await portal.swapExactInput({
+    inputToken: token,
+    outputToken: ZERO,
+    inputAmount: amount,
+    minOutputAmount: minimumBnb,
+    permitData: "0x",
+  });
+  log("Sell sent", `${position.symbol} ${reason} ${tx.hash}`);
+  await tx.wait();
 }
 async function monitorTakeProfit() {
   if (!wallet) return;
@@ -351,6 +357,40 @@ async function monitorTakeProfit() {
 
     if (nowValue >= spent * BigInt(CFG.takeProfitMultiple)) {
       await sellHalf(position);
+    }
+  }
+}
+async function monitorTimedStopLoss() {
+  if (!wallet || CFG.lossSellAfterSeconds <= 0) return;
+  const positions = loadPositions();
+  const now = Date.now();
+
+  for (const position of Object.values(positions)) {
+    if (position.soldAllLoss || !position.boughtAt) continue;
+    const boughtAtMs = Date.parse(position.boughtAt);
+    if (!Number.isFinite(boughtAtMs) || now - boughtAtMs < CFG.lossSellAfterSeconds * 1000) continue;
+
+    const tokenContract = new ethers.Contract(position.token, erc20Abi, provider);
+    const balance = await tokenContract.balanceOf(wallet.address);
+    if (balance === 0n) continue;
+
+    const nowValue = await quoteSell(position.token, balance);
+    const spent = BigInt(position.spentWei);
+    const multiple = Number(ethers.formatEther(nowValue)) / Number(ethers.formatEther(spent));
+    log(
+      "Timed loss check",
+      `${position.symbol} held ${Math.floor((now - boughtAtMs) / 1000)}s, current ${fmtBnb(nowValue)} BNB, cost ${fmtBnb(spent)} BNB, multiple ${multiple.toFixed(2)}x`
+    );
+
+    if (nowValue < spent) {
+      log("Timed loss sell", `${position.symbol} is below cost after ${CFG.lossSellAfterSeconds}s; selling all`);
+      await sellTokenAmount(position, balance, "timed-stop-loss-all");
+      const latestPositions = loadPositions();
+      latestPositions[position.token.toLowerCase()].soldAllLoss = true;
+      latestPositions[position.token.toLowerCase()].soldAllLossAt = new Date().toISOString();
+      latestPositions[position.token.toLowerCase()].lossSellValueWei = nowValue.toString();
+      savePositions(latestPositions);
+      log("Sell confirmed", `${position.symbol} sold all by timed stop loss`);
     }
   }
 }
@@ -533,6 +573,7 @@ async function main() {
     `age <= ${CFG.maxAgeSeconds}s; market cap < $${CFG.maxMarketCapUsd}; pool BNB; buy tax < ${toBpsText(CFG.maxBuyTaxBps)}; sell tax < ${toBpsText(CFG.maxSellTaxBps)}; qualified external buys >= ${CFG.minPreviousBuys}; single external buy >= ${CFG.minPreviousBuyBnb} BNB; watch ${CFG.tokenWatchSeconds}s`
   );
   log("Take profit", `sell half at ${CFG.takeProfitMultiple}x`);
+  log("Timed stop loss", CFG.lossSellAfterSeconds > 0 ? `sell all losers after ${CFG.lossSellAfterSeconds}s` : "disabled");
 
   if (CFG.wsUrl) {
     await subscribePortalEvents();
@@ -542,6 +583,7 @@ async function main() {
 
   setInterval(() => {
     monitorTakeProfit().catch((error) => logError("take profit monitor failed", error));
+    monitorTimedStopLoss().catch((error) => logError("timed stop loss monitor failed", error));
   }, CFG.pollMs);
 }
 

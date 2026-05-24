@@ -22,6 +22,7 @@ Keep `DRY_RUN=true` until logs look correct. Set `DRY_RUN=false` only after addi
 - After a token passes the creation filters, the bot watches live buy events for up to `TOKEN_WATCH_SECONDS`, default `15`.
 - The first qualifying external buy can trigger the bot immediately when `MIN_PREVIOUS_BUYS=1`; each qualifying buy must be at least `MIN_PREVIOUS_BUY_BNB`, default `0.01 BNB`.
 - 5x position value triggers selling half.
+- If a position is still below cost after `LOSS_SELL_AFTER_SECONDS`, default `3600`, the bot sells the full remaining balance. Positions at or above cost are left untouched.
 
 ## Important
 
