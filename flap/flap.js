@@ -24,13 +24,17 @@ const CFG = {
   quoteProbeBnb: process.env.QUOTE_PROBE_BNB || "0.01",
   buySlippageBps: Number(process.env.BUY_SLIPPAGE_BPS || 1200),
   sellSlippageBps: Number(process.env.SELL_SLIPPAGE_BPS || 1200),
+  gasPriceGwei: process.env.GAS_PRICE_GWEI || "",
   takeProfitMultiple: Number(process.env.TAKE_PROFIT_MULTIPLE || 5),
   lossSellAfterSeconds: Number(process.env.LOSS_SELL_AFTER_SECONDS || 3600),
+  closeAfterPositionErrors: Number(process.env.CLOSE_AFTER_POSITION_ERRORS || 3),
+  positionLogMs: Number(process.env.POSITION_LOG_MS || 60000),
   pollMs: Number(process.env.PROFIT_POLL_MS || 5000),
   eventPollMs: Number(process.env.EVENT_POLL_MS || 1200),
   maxBlockRange: Number(process.env.MAX_BLOCK_RANGE || 20),
   minPreviousBuys: Number(process.env.MIN_PREVIOUS_BUYS || 1),
   minPreviousBuyBnb: process.env.MIN_PREVIOUS_BUY_BNB || "0.0",
+  previousBuyLookaheadBlocks: Number(process.env.PREVIOUS_BUY_LOOKAHEAD_BLOCKS || 3),
   tokenWatchSeconds: Number(process.env.TOKEN_WATCH_SECONDS || 15),
 };
 
@@ -73,6 +77,8 @@ const tokenBoughtTopic = portalIface.getEvent("TokenBought").topicHash;
 const watchedTokens = new Map();
 const purchasedTokens = new Set();
 const timedStopLossErrorLogAt = new Map();
+const positionStatusLogAt = new Map();
+const buyQuoteCache = new Map();
 const colors = {
   reset: "\x1b[0m",
   green: "\x1b[32m",
@@ -113,6 +119,43 @@ function savePositions(positions) {
   fs.writeFileSync(POSITIONS_FILE, JSON.stringify(positions, bigintReplacer, 2));
 }
 
+function markPositionClosed(token, reason, extra = {}) {
+  const positions = loadPositions();
+  const key = token.toLowerCase();
+  if (!positions[key]) return;
+  positions[key] = {
+    ...positions[key],
+    ...extra,
+    closed: true,
+    closedReason: reason,
+    closedAt: new Date().toISOString(),
+  };
+  savePositions(positions);
+}
+
+function recordPositionMonitorError(position, reason, error) {
+  const token = position.token;
+  const key = token.toLowerCase();
+  const positions = loadPositions();
+  if (!positions[key] || positions[key].closed) return;
+
+  const monitorErrors = Number(positions[key].monitorErrors || 0) + 1;
+  positions[key].monitorErrors = monitorErrors;
+  positions[key].lastMonitorError = error && error.message ? error.message : String(error);
+  positions[key].lastMonitorErrorAt = new Date().toISOString();
+
+  if (CFG.closeAfterPositionErrors > 0 && monitorErrors >= CFG.closeAfterPositionErrors) {
+    positions[key].closed = true;
+    positions[key].closedReason = `${reason}-errors`;
+    positions[key].closedAt = new Date().toISOString();
+    savePositions(positions);
+    log("仓位关闭", `${position.symbol} ${reason} 连续失败 ${monitorErrors} 次，停止监控`);
+    return;
+  }
+
+  savePositions(positions);
+}
+
 function bigintReplacer(_key, value) {
   return typeof value === "bigint" ? value.toString() : value;
 }
@@ -127,6 +170,24 @@ function toBpsText(bps) {
 
 function minOut(amount, slippageBps) {
   return (amount * BigInt(10000 - slippageBps)) / 10000n;
+}
+
+function txOverrides(extra = {}) {
+  const overrides = { ...extra };
+  if (CFG.gasPriceGwei) {
+    overrides.gasPrice = ethers.parseUnits(CFG.gasPriceGwei, "gwei");
+  }
+  return overrides;
+}
+
+function shouldLogPositionStatus(token) {
+  if (CFG.positionLogMs <= 0) return true;
+  const key = token.toLowerCase();
+  const now = Date.now();
+  const lastLoggedAt = positionStatusLogAt.get(key) || 0;
+  if (now - lastLoggedAt < CFG.positionLogMs) return false;
+  positionStatusLogAt.set(key, now);
+  return true;
 }
 
 async function quoteBuy(token, bnbIn) {
@@ -158,6 +219,13 @@ async function estimateMarketCapUsd(token) {
   const probeIn = ethers.parseEther(CFG.quoteProbeBnb);
   const out = await quoteBuy(token, probeIn);
   if (out === 0n) return Number.POSITIVE_INFINITY;
+  if (probeIn === ethers.parseEther(CFG.buyBnb)) {
+    buyQuoteCache.set(token.toLowerCase(), {
+      inputAmount: probeIn,
+      expectedOut: out,
+      cachedAt: Date.now(),
+    });
+  }
 
   const decimals = await getDecimals(token);
   const tokensOut = Number(ethers.formatUnits(out, decimals));
@@ -201,7 +269,7 @@ async function quoteTokenFromCreationTx(txHash, token) {
 async function passesFilters(event) {
   const { token, name, symbol, ts } = event.args;
   const age = Math.floor(Date.now() / 1000) - Number(ts);
-  log("Filter", `${symbol}(${name}) age ${age}s, need <= ${CFG.maxAgeSeconds}s`);
+  log("过滤", `${symbol}(${name}) 创建 ${age}s，要求 <= ${CFG.maxAgeSeconds}s`);
   if (age > CFG.maxAgeSeconds) {
     return { ok: false, reason: `created ${age}s ago, over ${CFG.maxAgeSeconds}s` };
   }
@@ -212,12 +280,12 @@ async function passesFilters(event) {
     estimateMarketCapUsd(token),
   ]);
 
-  log("Filter", `creation quote asset ${txQuoteToken === ZERO ? "BNB" : txQuoteToken}`);
+  log("过滤", `创建交易报价资产 ${txQuoteToken === ZERO ? "BNB" : txQuoteToken}`);
   log(
     "Filter",
     `buy tax ${toBpsText(tax.buyTaxBps)} / sell tax ${toBpsText(tax.sellTaxBps)} / pool ${tax.quoteToken === ZERO ? "BNB" : tax.quoteToken}`
   );
-  log("Filter", `estimated market cap ${marketCapUsd.toFixed(2)}, need < ${CFG.maxMarketCapUsd}`);
+  log("过滤", `预估市值 ${marketCapUsd.toFixed(2)}，要求 < ${CFG.maxMarketCapUsd}`);
 
   if (txQuoteToken !== ZERO) {
     return { ok: false, reason: `creation quoteToken is not BNB: ${txQuoteToken}` };
@@ -250,21 +318,25 @@ async function passesFilters(event) {
 }
 async function buyToken(candidate) {
   const inputAmount = ethers.parseEther(CFG.buyBnb);
-  const expectedOut = await quoteBuy(candidate.token, inputAmount);
+  const cachedQuote = buyQuoteCache.get(candidate.token.toLowerCase());
+  const expectedOut =
+    cachedQuote && cachedQuote.inputAmount === inputAmount && Date.now() - cachedQuote.cachedAt <= 10_000
+      ? cachedQuote.expectedOut
+      : await quoteBuy(candidate.token, inputAmount);
   const minimumOut = minOut(expectedOut, CFG.buySlippageBps);
 
   log(
     "Matched",
     `${candidate.symbol} contract ${green(candidate.token)} | market cap ${candidate.marketCapUsd.toFixed(2)} | buy tax ${toBpsText(candidate.buyTaxBps)} | sell tax ${toBpsText(candidate.sellTaxBps)}`
   );
-  log("Buy check", `qualified external buys: ${candidate.previousBuys}`);
+  log("买入检查", `合格外部买入次数：${candidate.previousBuys}`);
   log(
     "Buy quote",
     `spend ${CFG.buyBnb} BNB, expected token units ${expectedOut.toString()}, minimum out ${minimumOut.toString()}`
   );
 
   if (CFG.dryRun) {
-    log("Dry run buy", `DRY_RUN=true; would buy ${CFG.buyBnb} BNB of ${candidate.symbol}`);
+    log("模拟买入", `DRY_RUN=true；本应买入 ${CFG.buyBnb} BNB 的 ${candidate.symbol}`);
     return;
   }
   if (!wallet) throw new Error("DRY_RUN=false requires PRIVATE_KEY in .env");
@@ -277,12 +349,12 @@ async function buyToken(candidate) {
       minOutputAmount: minimumOut,
       permitData: "0x",
     },
-    { value: inputAmount }
+    txOverrides({ value: inputAmount })
   );
 
-  log("Buy sent", tx.hash);
+  log("买入已发送", tx.hash);
   const receipt = await tx.wait();
-  log("Buy confirmed", `block ${receipt.blockNumber}`);
+  log("买入已确认", `区块 ${receipt.blockNumber}`);
 
   const tokenContract = new ethers.Contract(candidate.token, erc20Abi, provider);
   const balance = await tokenContract.balanceOf(wallet.address);
@@ -311,11 +383,11 @@ async function sellHalf(position) {
   positions[token.toLowerCase()].soldHalf = true;
   positions[token.toLowerCase()].soldAt = new Date().toISOString();
   savePositions(positions);
-  log("Sell confirmed", `${position.symbol} sold half`);
+  log("卖出已确认", `${position.symbol} 已卖出一半`);
 }
 async function sellTokenAmount(position, amount, reason) {
   if (CFG.dryRun) {
-    log("Dry run sell", `DRY_RUN=true; ${position.symbol} ${reason}, would sell ${amount.toString()} token units`);
+    log("模拟卖出", `DRY_RUN=true；${position.symbol} ${reason}，本应卖出 ${amount.toString()} token units`);
     return;
   }
   if (!wallet) throw new Error("DRY_RUN=false requires PRIVATE_KEY in .env");
@@ -325,7 +397,7 @@ async function sellTokenAmount(position, amount, reason) {
   const allowance = await tokenContract.allowance(wallet.address, PORTAL);
   if (allowance < amount) {
     const approveTx = await tokenContract.approve(PORTAL, ethers.MaxUint256);
-    log("Approve sent", `${position.symbol} ${approveTx.hash}`);
+    log("授权已发送", `${position.symbol} ${approveTx.hash}`);
     await approveTx.wait();
   }
 
@@ -338,7 +410,7 @@ async function sellTokenAmount(position, amount, reason) {
     minOutputAmount: minimumBnb,
     permitData: "0x",
   });
-  log("Sell sent", `${position.symbol} ${reason} ${tx.hash}`);
+  log("卖出已发送", `${position.symbol} ${reason} ${tx.hash}`);
   await tx.wait();
 }
 async function monitorTakeProfit() {
@@ -346,18 +418,28 @@ async function monitorTakeProfit() {
   const positions = loadPositions();
 
   for (const position of Object.values(positions)) {
-    if (position.soldHalf) continue;
-    const tokenContract = new ethers.Contract(position.token, erc20Abi, provider);
-    const balance = await tokenContract.balanceOf(wallet.address);
-    if (balance === 0n) continue;
+    if (position.closed || position.soldHalf) continue;
+    try {
+      const tokenContract = new ethers.Contract(position.token, erc20Abi, provider);
+      const balance = await tokenContract.balanceOf(wallet.address);
+      if (balance === 0n) {
+        markPositionClosed(position.token, "zero-balance");
+        log("仓位关闭", `${position.symbol} 钱包余额为 0，停止监控`);
+        continue;
+      }
 
-    const nowValue = await quoteSell(position.token, balance);
-    const spent = BigInt(position.spentWei);
-    const multiple = Number(ethers.formatEther(nowValue)) / Number(ethers.formatEther(spent));
-    log("Take profit monitor", `${position.symbol} current ${fmtBnb(nowValue)} BNB, cost ${fmtBnb(spent)} BNB, multiple ${multiple.toFixed(2)}x`);
+      const nowValue = await quoteSell(position.token, balance);
+      const spent = BigInt(position.spentWei);
+      const multiple = Number(ethers.formatEther(nowValue)) / Number(ethers.formatEther(spent));
+      if (shouldLogPositionStatus(position.token)) {
+        log("止盈监控", `${position.symbol} 当前 ${fmtBnb(nowValue)} BNB，成本 ${fmtBnb(spent)} BNB，倍数 ${multiple.toFixed(2)}x`);
+      }
 
-    if (nowValue >= spent * BigInt(CFG.takeProfitMultiple)) {
-      await sellHalf(position);
+      if (nowValue >= spent * BigInt(CFG.takeProfitMultiple)) {
+        await sellHalf(position);
+      }
+    } catch (error) {
+      recordPositionMonitorError(position, "take-profit-monitor", error);
     }
   }
 }
@@ -374,19 +456,24 @@ async function monitorTimedStopLoss() {
       const lastLoggedAt = timedStopLossErrorLogAt.get(tokenKey) || 0;
       if (now - lastLoggedAt >= 60_000) {
         timedStopLossErrorLogAt.set(tokenKey, now);
-        logError(`timed stop loss skipped ${position.symbol || tokenKey}`, error);
+        logError(`定时止损跳过 ${position.symbol || tokenKey}`, error);
       }
+      recordPositionMonitorError(position, "timed-stop-loss-monitor", error);
     }
   }
 }
 async function checkTimedStopLossPosition(position, now) {
-  if (position.soldAllLoss || !position.boughtAt) return;
+  if (position.closed || position.soldAllLoss || !position.boughtAt) return;
   const boughtAtMs = Date.parse(position.boughtAt);
   if (!Number.isFinite(boughtAtMs) || now - boughtAtMs < CFG.lossSellAfterSeconds * 1000) return;
 
   const tokenContract = new ethers.Contract(position.token, erc20Abi, provider);
   const balance = await tokenContract.balanceOf(wallet.address);
-  if (balance === 0n) return;
+  if (balance === 0n) {
+    markPositionClosed(position.token, "zero-balance");
+    log("仓位关闭", `${position.symbol} 钱包余额为 0，停止监控`);
+    return;
+  }
 
   const nowValue = await quoteSell(position.token, balance);
   const spent = BigInt(position.spentWei);
@@ -397,14 +484,17 @@ async function checkTimedStopLossPosition(position, now) {
   );
 
   if (nowValue < spent) {
-    log("Timed loss sell", `${position.symbol} is below cost after ${CFG.lossSellAfterSeconds}s; selling all`);
+    log("定时止损卖出", `${position.symbol} 持仓超过 ${CFG.lossSellAfterSeconds}s 后仍低于成本，卖出全部`);
     await sellTokenAmount(position, balance, "timed-stop-loss-all");
     const latestPositions = loadPositions();
     latestPositions[position.token.toLowerCase()].soldAllLoss = true;
     latestPositions[position.token.toLowerCase()].soldAllLossAt = new Date().toISOString();
     latestPositions[position.token.toLowerCase()].lossSellValueWei = nowValue.toString();
+    latestPositions[position.token.toLowerCase()].closed = true;
+    latestPositions[position.token.toLowerCase()].closedReason = "timed-stop-loss-all";
+    latestPositions[position.token.toLowerCase()].closedAt = new Date().toISOString();
     savePositions(latestPositions);
-    log("Sell confirmed", `${position.symbol} sold all by timed stop loss`);
+    log("卖出已确认", `${position.symbol} 已按定时止损卖出全部`);
   }
 }
 async function handleTokenCreatedLog(eventLog) {
@@ -416,27 +506,30 @@ async function handleTokenCreatedLog(eventLog) {
     const tokenKey = token.toLowerCase();
     if (purchasedTokens.has(tokenKey) || watchedTokens.has(tokenKey)) return;
 
-    log("New token", `${symbol}(${name}) contract ${yellow(token)}`);
-    log("Creation", `creator ${creator} | tx ${eventLog.transactionHash} | block ${eventLog.blockNumber}`);
+    log("新代币", `${symbol}(${name}) 合约 ${yellow(token)}`);
+    log("创建信息", `创建者 ${creator} | tx ${eventLog.transactionHash} | 区块 ${eventLog.blockNumber}`);
     const candidate = await passesFilters(event);
     if (!candidate.ok) {
-      log("Rejected", `${symbol} contract ${red(token)} | reason: ${candidate.reason}`);
+      log("已拒绝", `${symbol} 合约 ${red(token)} | 原因：${candidate.reason}`);
       return;
     }
     watchedTokens.set(tokenKey, {
       candidate,
       createdAtMs: Date.now(),
       qualifiedBuys: 0,
+      creator: creator.toLowerCase(),
     });
     log(
-      "Watching buys",
-      `${symbol} contract ${green(token)} passed filters; will buy after ${CFG.minPreviousBuys} external buy(s) >= ${CFG.minPreviousBuyBnb} BNB`
+      "等待跟买",
+      `${symbol} 合约 ${green(token)} 已通过过滤；等待 ${CFG.minPreviousBuys} 笔外部买入，单笔 >= ${CFG.minPreviousBuyBnb} BNB 后跟买`
     );
     if (CFG.minPreviousBuys <= 0) {
-      await executeWatchedBuy(tokenKey, "no external buy required");
+      await executeWatchedBuy(tokenKey, "无需外部买入确认");
+    } else {
+      await backfillRecentBuys(tokenKey, eventLog.blockNumber);
     }
   } catch (error) {
-    logError(`failed to handle TokenCreated log, tx ${eventLog.transactionHash || "unknown"}`, error);
+    logError(`处理 TokenCreated 日志失败，tx ${eventLog.transactionHash || "unknown"}`, error);
   }
 }
 async function executeWatchedBuy(tokenKey, reason) {
@@ -446,7 +539,7 @@ async function executeWatchedBuy(tokenKey, reason) {
   watchedTokens.delete(tokenKey);
   purchasedTokens.add(tokenKey);
   watched.candidate.previousBuys = watched.qualifiedBuys;
-  log("Buy trigger", `${watched.candidate.symbol} ${reason}`);
+  log("买入触发", `${watched.candidate.symbol} ${reason}`);
   await buyToken(watched.candidate);
 }
 
@@ -460,32 +553,67 @@ async function handleTokenBoughtLog(eventLog) {
 
     if (Date.now() - watched.createdAtMs > CFG.tokenWatchSeconds * 1000) {
       watchedTokens.delete(tokenKey);
-      log("Watch expired", `${watched.candidate.symbol} no qualifying buy within ${CFG.tokenWatchSeconds}s`);
+      log("监控过期", `${watched.candidate.symbol} 在 ${CFG.tokenWatchSeconds}s 内没有合格买入`);
       return;
     }
 
     const ownAddress = wallet ? wallet.address.toLowerCase() : "";
     if (ownAddress && buyer.toLowerCase() === ownAddress) return;
+    if (watched.creator && buyer.toLowerCase() !== watched.creator) {
+      log("买入忽略", `${watched.candidate.symbol} 买家 ${buyer} 不是该币 dev ${watched.creator}`);
+      return;
+    }
 
     const minBuyWei = ethers.parseEther(CFG.minPreviousBuyBnb);
     if (eth < minBuyWei) {
       log(
-        "Buy ignored",
-        `${watched.candidate.symbol} external buy ${fmtBnb(eth)} BNB < ${CFG.minPreviousBuyBnb} BNB`
+        "买入忽略",
+        `${watched.candidate.symbol} 外部买入 ${fmtBnb(eth)} BNB < ${CFG.minPreviousBuyBnb} BNB`
       );
       return;
     }
 
     watched.qualifiedBuys += 1;
     log(
-      "Qualified buy",
-      `${watched.candidate.symbol} ${watched.qualifiedBuys}/${CFG.minPreviousBuys} | buyer ${buyer} | ${fmtBnb(eth)} BNB`
+      "合格买入",
+      `${watched.candidate.symbol} ${watched.qualifiedBuys}/${CFG.minPreviousBuys} | 买家 ${buyer} | ${fmtBnb(eth)} BNB`
     );
     if (watched.qualifiedBuys >= CFG.minPreviousBuys) {
-      await executeWatchedBuy(tokenKey, `first qualified buy seen in tx ${eventLog.transactionHash}`);
+      await executeWatchedBuy(tokenKey, `看到合格买入 tx ${eventLog.transactionHash}`);
     }
   } catch (error) {
-    logError(`failed to handle TokenBought log, tx ${eventLog.transactionHash || "unknown"}`, error);
+    logError(`处理 TokenBought 日志失败，tx ${eventLog.transactionHash || "unknown"}`, error);
+  }
+}
+
+async function backfillRecentBuys(tokenKey, createdBlock) {
+  if (CFG.previousBuyLookaheadBlocks <= 0) return;
+  const watched = watchedTokens.get(tokenKey);
+  if (!watched || purchasedTokens.has(tokenKey)) return;
+
+  try {
+    const latest = await provider.getBlockNumber();
+    const fromBlock = createdBlock;
+    const toBlock = Math.min(latest, createdBlock + CFG.previousBuyLookaheadBlocks);
+    if (toBlock < fromBlock) return;
+
+    const logs = await provider.getLogs({
+      address: PORTAL,
+      topics: [tokenBoughtTopic],
+      fromBlock,
+      toBlock,
+    });
+    logs.sort((a, b) => {
+      if (a.blockNumber !== b.blockNumber) return a.blockNumber - b.blockNumber;
+      return (a.index ?? a.logIndex ?? 0) - (b.index ?? b.logIndex ?? 0);
+    });
+    log("回查买入", `${watched.candidate.symbol} 区块 ${fromBlock} -> ${toBlock}，发现 ${logs.length} 条买入日志`);
+    for (const eventLog of logs) {
+      await handleTokenBoughtLog(eventLog);
+      if (purchasedTokens.has(tokenKey)) return;
+    }
+  } catch (error) {
+    logError(`${watched.candidate.symbol} 回查买入失败`, error);
   }
 }
 
@@ -502,7 +630,7 @@ function pruneWatchedTokens() {
   for (const [tokenKey, watched] of watchedTokens) {
     if (now - watched.createdAtMs > CFG.tokenWatchSeconds * 1000) {
       watchedTokens.delete(tokenKey);
-      log("Watch expired", `${watched.candidate.symbol} no qualifying buy within ${CFG.tokenWatchSeconds}s`);
+      log("监控过期", `${watched.candidate.symbol} 在 ${CFG.tokenWatchSeconds}s 内没有合格买入`);
     }
   }
 }
@@ -510,7 +638,7 @@ function pruneWatchedTokens() {
 async function pollTokenCreatedEvents() {
   let lastBlock = await provider.getBlockNumber();
   let scanning = false;
-  log("Listener started", `polling Portal logs from block ${lastBlock + 1}; watching TokenCreated + TokenBought`);
+  log("监听已启动", `从区块 ${lastBlock + 1} 轮询 Portal 日志；监控 TokenCreated + TokenBought`);
 
   setInterval(async () => {
     if (scanning) return;
@@ -521,7 +649,7 @@ async function pollTokenCreatedEvents() {
 
       const fromBlock = lastBlock + 1;
       const toBlock = Math.min(latest, lastBlock + CFG.maxBlockRange);
-      log("Scan blocks", `${fromBlock} -> ${toBlock}`);
+      log("扫描区块", `${fromBlock} -> ${toBlock}`);
       const logs = await provider.getLogs({
         address: PORTAL,
         topics: [[tokenCreatedTopic, tokenBoughtTopic]],
@@ -535,16 +663,16 @@ async function pollTokenCreatedEvents() {
 
       lastBlock = toBlock;
       if (logs.length === 0) {
-        log("Scan result", "no Portal create/buy logs this round");
+        log("扫描结果", "本轮没有 Portal 创建/买入日志");
       } else {
-        log("Scan result", `found ${logs.length} Portal create/buy log(s)`);
+        log("扫描结果", `发现 ${logs.length} 条 Portal 创建/买入日志`);
       }
       for (const eventLog of logs) {
         await handlePortalLog(eventLog);
       }
       pruneWatchedTokens();
     } catch (error) {
-      logError("block scan failed", error);
+      logError("区块扫描失败", error);
     } finally {
       scanning = false;
     }
@@ -565,28 +693,30 @@ async function subscribePortalEvents() {
     },
     (eventLog) => {
       handlePortalLog(eventLog).catch((error) =>
-        logError(`real-time log handler failed, tx ${eventLog.transactionHash || "unknown"}`, error)
+        logError(`实时日志处理失败，tx ${eventLog.transactionHash || "unknown"}`, error)
       );
     }
   );
 
   eventProvider.on("error", (error) => {
-    logError("real-time provider error", error);
+    logError("实时 provider 错误", error);
   });
 }
 
 async function main() {
-  log("Start", `Flap BNB Board monitor, Portal contract ${PORTAL}`);
-  log("Mode", CFG.dryRun ? "DRY_RUN=true; monitor only" : `LIVE trading; wallet ${wallet.address}`);
+  log("启动", `Flap BNB Board 监控器，Portal 合约 ${PORTAL}`);
+  log("模式", CFG.dryRun ? "DRY_RUN=true；仅监控不交易" : `实盘交易；钱包 ${wallet.address}`);
   log("RPC", CFG.rpcUrl);
-  log("Events", CFG.wsUrl ? `BSC_WS_URL enabled: ${CFG.wsUrl}` : `HTTP polling every ${CFG.eventPollMs}ms`);
-  log("Buy config", `buy ${CFG.buyBnb} BNB, buy slippage ${toBpsText(CFG.buySlippageBps)}, sell slippage ${toBpsText(CFG.sellSlippageBps)}`);
+  log("事件监听", CFG.wsUrl ? `已启用 BSC_WS_URL：${CFG.wsUrl}` : `HTTP 每 ${CFG.eventPollMs}ms 轮询`);
+  log("买入配置", `买入 ${CFG.buyBnb} BNB，买入滑点 ${toBpsText(CFG.buySlippageBps)}，卖出滑点 ${toBpsText(CFG.sellSlippageBps)}`);
   log(
     "Filters",
     `age <= ${CFG.maxAgeSeconds}s; market cap < $${CFG.maxMarketCapUsd}; pool BNB; buy tax < ${toBpsText(CFG.maxBuyTaxBps)}; sell tax < ${toBpsText(CFG.maxSellTaxBps)}; qualified external buys >= ${CFG.minPreviousBuys}; single external buy >= ${CFG.minPreviousBuyBnb} BNB; watch ${CFG.tokenWatchSeconds}s`
   );
-  log("Take profit", `sell half at ${CFG.takeProfitMultiple}x`);
-  log("Timed stop loss", CFG.lossSellAfterSeconds > 0 ? `sell all losers after ${CFG.lossSellAfterSeconds}s` : "disabled");
+  log("止盈", `达到 ${CFG.takeProfitMultiple}x 卖出一半`);
+  log("定时止损", CFG.lossSellAfterSeconds > 0 ? `${CFG.lossSellAfterSeconds}s 后仍亏损则卖出全部` : "已关闭");
+  log("仓位清理", CFG.closeAfterPositionErrors > 0 ? `连续 ${CFG.closeAfterPositionErrors} 次监控错误后关闭仓位` : "已关闭");
+  log("仓位日志", CFG.positionLogMs > 0 ? `每 ${CFG.positionLogMs}ms 打印一次未触发仓位状态` : "每次检查都打印");
 
   if (CFG.wsUrl) {
     await subscribePortalEvents();
@@ -595,12 +725,12 @@ async function main() {
   }
 
   setInterval(() => {
-    monitorTakeProfit().catch((error) => logError("take profit monitor failed", error));
-    monitorTimedStopLoss().catch((error) => logError("timed stop loss monitor failed", error));
+    monitorTakeProfit().catch((error) => logError("止盈监控失败", error));
+    monitorTimedStopLoss().catch((error) => logError("定时止损监控失败", error));
   }, CFG.pollMs);
 }
 
 main().catch((error) => {
-  logError("startup failed", error);
+  logError("启动失败", error);
   process.exit(1);
 });
