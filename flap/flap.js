@@ -72,6 +72,7 @@ const tokenCreatedTopic = portalIface.getEvent("TokenCreated").topicHash;
 const tokenBoughtTopic = portalIface.getEvent("TokenBought").topicHash;
 const watchedTokens = new Map();
 const purchasedTokens = new Set();
+const timedStopLossErrorLogAt = new Map();
 const colors = {
   reset: "\x1b[0m",
   green: "\x1b[32m",
@@ -366,32 +367,44 @@ async function monitorTimedStopLoss() {
   const now = Date.now();
 
   for (const position of Object.values(positions)) {
-    if (position.soldAllLoss || !position.boughtAt) continue;
-    const boughtAtMs = Date.parse(position.boughtAt);
-    if (!Number.isFinite(boughtAtMs) || now - boughtAtMs < CFG.lossSellAfterSeconds * 1000) continue;
-
-    const tokenContract = new ethers.Contract(position.token, erc20Abi, provider);
-    const balance = await tokenContract.balanceOf(wallet.address);
-    if (balance === 0n) continue;
-
-    const nowValue = await quoteSell(position.token, balance);
-    const spent = BigInt(position.spentWei);
-    const multiple = Number(ethers.formatEther(nowValue)) / Number(ethers.formatEther(spent));
-    log(
-      "Timed loss check",
-      `${position.symbol} held ${Math.floor((now - boughtAtMs) / 1000)}s, current ${fmtBnb(nowValue)} BNB, cost ${fmtBnb(spent)} BNB, multiple ${multiple.toFixed(2)}x`
-    );
-
-    if (nowValue < spent) {
-      log("Timed loss sell", `${position.symbol} is below cost after ${CFG.lossSellAfterSeconds}s; selling all`);
-      await sellTokenAmount(position, balance, "timed-stop-loss-all");
-      const latestPositions = loadPositions();
-      latestPositions[position.token.toLowerCase()].soldAllLoss = true;
-      latestPositions[position.token.toLowerCase()].soldAllLossAt = new Date().toISOString();
-      latestPositions[position.token.toLowerCase()].lossSellValueWei = nowValue.toString();
-      savePositions(latestPositions);
-      log("Sell confirmed", `${position.symbol} sold all by timed stop loss`);
+    try {
+      await checkTimedStopLossPosition(position, now);
+    } catch (error) {
+      const tokenKey = String(position.token || position.symbol || "unknown").toLowerCase();
+      const lastLoggedAt = timedStopLossErrorLogAt.get(tokenKey) || 0;
+      if (now - lastLoggedAt >= 60_000) {
+        timedStopLossErrorLogAt.set(tokenKey, now);
+        logError(`timed stop loss skipped ${position.symbol || tokenKey}`, error);
+      }
     }
+  }
+}
+async function checkTimedStopLossPosition(position, now) {
+  if (position.soldAllLoss || !position.boughtAt) return;
+  const boughtAtMs = Date.parse(position.boughtAt);
+  if (!Number.isFinite(boughtAtMs) || now - boughtAtMs < CFG.lossSellAfterSeconds * 1000) return;
+
+  const tokenContract = new ethers.Contract(position.token, erc20Abi, provider);
+  const balance = await tokenContract.balanceOf(wallet.address);
+  if (balance === 0n) return;
+
+  const nowValue = await quoteSell(position.token, balance);
+  const spent = BigInt(position.spentWei);
+  const multiple = Number(ethers.formatEther(nowValue)) / Number(ethers.formatEther(spent));
+  log(
+    "Timed loss check",
+    `${position.symbol} held ${Math.floor((now - boughtAtMs) / 1000)}s, current ${fmtBnb(nowValue)} BNB, cost ${fmtBnb(spent)} BNB, multiple ${multiple.toFixed(2)}x`
+  );
+
+  if (nowValue < spent) {
+    log("Timed loss sell", `${position.symbol} is below cost after ${CFG.lossSellAfterSeconds}s; selling all`);
+    await sellTokenAmount(position, balance, "timed-stop-loss-all");
+    const latestPositions = loadPositions();
+    latestPositions[position.token.toLowerCase()].soldAllLoss = true;
+    latestPositions[position.token.toLowerCase()].soldAllLossAt = new Date().toISOString();
+    latestPositions[position.token.toLowerCase()].lossSellValueWei = nowValue.toString();
+    savePositions(latestPositions);
+    log("Sell confirmed", `${position.symbol} sold all by timed stop loss`);
   }
 }
 async function handleTokenCreatedLog(eventLog) {
