@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 420" role="img" aria-label="原创高速压制格斗家电神雷欧娜">
+  <defs>
+    <linearGradient id="bolt" x1="0" x2="1" y1="0" y2="1">
+      <stop stop-color="#e0f2fe"/><stop offset=".48" stop-color="#22d3ee"/><stop offset="1" stop-color="#1d4ed8"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="180" cy="365" rx="124" ry="38" fill="#22d3ee" opacity=".28"/>
+  <path d="M120 150c20-49 52-73 96-61 42 12 61 51 49 101l-31 174H116l-20-117c-8-43-1-75 24-97Z" fill="#0f172a" stroke="#bae6fd" stroke-width="5"/>
+  <path d="M105 211c32 28 83 38 147 3l26 57-61 7 30 86H115l29-86-61-8Z" fill="url(#bolt)" stroke="#bae6fd" stroke-width="4"/>
+  <circle cx="196" cy="101" r="43" fill="#ddb083" stroke="#bae6fd" stroke-width="5"/>
+  <path d="M153 102c8-49 55-75 99-45-27 3-50 27-67 71Z" fill="#082f49"/>
+  <path d="m175 138-29 77 43-9-22 74 67-109-42 9 26-42Z" fill="#fef08a" stroke="#0e7490" stroke-width="4"/>
+  <path d="M101 230 43 207l-8 43 77 27Zm160 47 77-27-8-43-58 23Z" fill="#ddb083" stroke="#bae6fd" stroke-width="4"/>
+  <path d="M42 207c32-11 59-4 81 20-31 21-60 16-81-20Zm195 20c22-24 49-31 81-20-21 36-50 41-81 20Z" fill="#22d3ee"/>
+</svg>
