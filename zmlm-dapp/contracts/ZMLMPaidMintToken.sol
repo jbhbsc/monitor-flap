@@ -37,6 +37,7 @@ contract ZMLMPaidMintToken {
     address public constant WBNB = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;
     address public constant USDT = 0x55d398326f99059fF775485246999027B3197955;
     address public constant FIST = 0xC9882dEF23bc42D53895b8361D0b1EDC7570Bc6A;
+    address public constant ZM = 0x1976438C747AC82B0d10C83e2B58662cf79c7777;
     uint256 public constant MINT_UNIT_WEI = 0.01 ether;
     uint256 public constant TOKENS_PER_MINT_UNIT = 10_000 * 10 ** uint256(decimals);
     uint256 public constant MAX_WALLET_MINT_WEI = 0.1 ether;
@@ -54,6 +55,7 @@ contract ZMLMPaidMintToken {
     address public pancakeWbnbPair;
     address public pancakeUsdtPair;
     address public pancakeFistPair;
+    address public pancakeZmPair;
     bool public tradingEnabled;
 
     uint16 public buyTaxBps;
@@ -120,10 +122,12 @@ contract ZMLMPaidMintToken {
         pancakeWbnbPair = IPancakeV2Factory(PANCAKE_V2_FACTORY).createPair(address(this), WBNB);
         pancakeUsdtPair = IPancakeV2Factory(PANCAKE_V2_FACTORY).createPair(address(this), USDT);
         pancakeFistPair = IPancakeV2Factory(PANCAKE_V2_FACTORY).createPair(address(this), FIST);
+        pancakeZmPair = IPancakeV2Factory(PANCAKE_V2_FACTORY).createPair(address(this), ZM);
         pancakePair = pancakeWbnbPair;
         isAutomatedMarketMakerPair[pancakeWbnbPair] = true;
         isAutomatedMarketMakerPair[pancakeUsdtPair] = true;
         isAutomatedMarketMakerPair[pancakeFistPair] = true;
+        isAutomatedMarketMakerPair[pancakeZmPair] = true;
 
         emit OwnershipTransferred(address(0), msg.sender);
         emit MarketingWalletUpdated(address(0), initialDevWallet);
@@ -131,6 +135,7 @@ contract ZMLMPaidMintToken {
         emit AutomatedMarketMakerPairUpdated(pancakeWbnbPair, true);
         emit AutomatedMarketMakerPairUpdated(pancakeUsdtPair, true);
         emit AutomatedMarketMakerPairUpdated(pancakeFistPair, true);
+        emit AutomatedMarketMakerPairUpdated(pancakeZmPair, true);
     }
 
     receive() external payable {
