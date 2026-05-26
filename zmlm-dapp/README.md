@@ -15,7 +15,7 @@ Static BSC mint DApp for `contracts/ZMLMPaidMintToken.sol`.
 ## Contract Features
 
 - Paid mint with automatic token delivery from contract inventory.
-- 3% sell tax routed directly to the marketing wallet.
+- 3% default buy tax and 3% default sell tax routed directly to the marketing wallet.
 - Owner-managed blacklist and whitelist.
 - Owner-managed AMM pair marking.
 - Automatically creates and marks the PancakeSwap V2 ZMLM/WBNB, ZMLM/USDT, ZMLM/FIST, and ZMLM/ZM pairs on deployment.
@@ -35,6 +35,8 @@ Constructor parameters:
 - `initialDevWallet`: DEV wallet that receives the full fixed initial supply and all mint BNB. It is also the default marketing wallet.
 
 The constructor automatically calls PancakeSwap V2 factory on BNB Chain and stores the created `pancakeWbnbPair`, `pancakeUsdtPair`, `pancakeFistPair`, and `pancakeZmPair`. All four are marked as AMM pairs for sell tax before ownership can be renounced. After `renounceOwnership()`, owner-only functions such as `setAutomatedMarketMakerPair` can no longer be called.
+
+Tax values use BPS: `300 = 3%`, `1000 = 10%`. The owner can call `setTaxes(buy, sell, transfer)` up to `maxTaxBps`, and can call `setMaxTaxBps` up to the hard cap `5000 = 50%`. After ownership is renounced, tax values and limits cannot be changed.
 
 ## Start
 

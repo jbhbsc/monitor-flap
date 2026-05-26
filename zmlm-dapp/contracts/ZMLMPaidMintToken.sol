@@ -43,7 +43,7 @@ contract ZMLMPaidMintToken {
     uint256 public constant MAX_WALLET_MINT_WEI = 0.1 ether;
     uint256 public constant INITIAL_SUPPLY = 100_000_000 * 10 ** uint256(decimals);
     uint16 public constant BPS_DENOMINATOR = 10_000;
-    uint16 public constant MAX_TAX_BPS = 300;
+    uint16 public constant HARD_MAX_TAX_BPS = 5_000;
 
     uint256 public totalSupply;
     uint256 public totalMintedTokens;
@@ -61,6 +61,7 @@ contract ZMLMPaidMintToken {
     uint16 public buyTaxBps;
     uint16 public sellTaxBps;
     uint16 public transferTaxBps;
+    uint16 public maxTaxBps;
     uint16 public dustAirdropTaxShareBps;
 
     uint256 public dustAirdropAmount;
@@ -83,6 +84,7 @@ contract ZMLMPaidMintToken {
     event MarketingWalletUpdated(address indexed previousWallet, address indexed newWallet);
     event TradingEnabledUpdated(bool enabled);
     event TaxesUpdated(uint16 buyTaxBps, uint16 sellTaxBps, uint16 transferTaxBps);
+    event MaxTaxUpdated(uint16 maxTaxBps);
     event WhitelistUpdated(address indexed account, bool whitelisted);
     event BlacklistUpdated(address indexed account, bool blacklisted);
     event AutomatedMarketMakerPairUpdated(address indexed pair, bool isPair);
@@ -110,7 +112,9 @@ contract ZMLMPaidMintToken {
         owner = msg.sender;
         marketingWallet = initialDevWallet;
 
+        buyTaxBps = 300;
         sellTaxBps = 300;
+        maxTaxBps = 3_000;
         dustAirdropTaxShareBps = 10;
         dustAirdropAmount = 1 * 10 ** (uint256(decimals) - 6);
 
@@ -132,6 +136,7 @@ contract ZMLMPaidMintToken {
         emit OwnershipTransferred(address(0), msg.sender);
         emit MarketingWalletUpdated(address(0), initialDevWallet);
         emit TaxesUpdated(buyTaxBps, sellTaxBps, transferTaxBps);
+        emit MaxTaxUpdated(maxTaxBps);
         emit AutomatedMarketMakerPairUpdated(pancakeWbnbPair, true);
         emit AutomatedMarketMakerPairUpdated(pancakeUsdtPair, true);
         emit AutomatedMarketMakerPairUpdated(pancakeFistPair, true);
@@ -207,14 +212,24 @@ contract ZMLMPaidMintToken {
         uint16 newSellTaxBps,
         uint16 newTransferTaxBps
     ) external onlyOwner {
-        require(newBuyTaxBps <= MAX_TAX_BPS, "ZMLM: buy tax too high");
-        require(newSellTaxBps <= MAX_TAX_BPS, "ZMLM: sell tax too high");
-        require(newTransferTaxBps <= MAX_TAX_BPS, "ZMLM: transfer tax too high");
+        require(newBuyTaxBps <= maxTaxBps, "ZMLM: buy tax too high");
+        require(newSellTaxBps <= maxTaxBps, "ZMLM: sell tax too high");
+        require(newTransferTaxBps <= maxTaxBps, "ZMLM: transfer tax too high");
 
         buyTaxBps = newBuyTaxBps;
         sellTaxBps = newSellTaxBps;
         transferTaxBps = newTransferTaxBps;
         emit TaxesUpdated(newBuyTaxBps, newSellTaxBps, newTransferTaxBps);
+    }
+
+    function setMaxTaxBps(uint16 newMaxTaxBps) external onlyOwner {
+        require(newMaxTaxBps <= HARD_MAX_TAX_BPS, "ZMLM: hard max tax exceeded");
+        require(buyTaxBps <= newMaxTaxBps, "ZMLM: current buy tax too high");
+        require(sellTaxBps <= newMaxTaxBps, "ZMLM: current sell tax too high");
+        require(transferTaxBps <= newMaxTaxBps, "ZMLM: current transfer tax too high");
+
+        maxTaxBps = newMaxTaxBps;
+        emit MaxTaxUpdated(newMaxTaxBps);
     }
 
     function setWhitelisted(address account, bool whitelisted) external onlyOwner {
