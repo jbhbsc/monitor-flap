@@ -18,6 +18,7 @@ Static BSC mint DApp for `contracts/ZMLMPaidMintToken.sol`.
 - 3% sell tax routed directly to the marketing wallet.
 - Owner-managed blacklist and whitelist.
 - Owner-managed AMM pair marking.
+- Automatically creates and marks the PancakeSwap V2 ZMLM/WBNB pair on deployment.
 - Trading on/off switch.
 - Transfer ownership and renounce ownership.
 - Rescue BNB or tokens accidentally sent to the contract.
@@ -32,6 +33,8 @@ Constructor parameters:
 - `tokenName`: token name, for example `ZMLM`.
 - `tokenSymbol`: token symbol, for example `ZMLM`.
 - `initialDevWallet`: DEV wallet that receives the full fixed initial supply and all mint BNB. It is also the default marketing wallet.
+
+The constructor automatically calls PancakeSwap V2 factory on BNB Chain and stores the created `pancakePair`. You can still use `setAutomatedMarketMakerPair(pair, true)` later for extra pools such as ZMLM/USDT.
 
 ## Start
 

@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+interface IPancakeV2Factory {
+    function createPair(address tokenA, address tokenB) external returns (address pair);
+}
+
 /**
  * @title ZMLMPaidMintToken
  * @notice Standalone ERC20/BEP20-style token for the ZMLM DApp.
@@ -29,6 +33,8 @@ contract ZMLMPaidMintToken {
     string public symbol;
     uint8 public constant decimals = 18;
 
+    address public constant PANCAKE_V2_FACTORY = 0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73;
+    address public constant WBNB = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;
     uint256 public constant MINT_UNIT_WEI = 0.01 ether;
     uint256 public constant TOKENS_PER_MINT_UNIT = 1_000 * 10 ** uint256(decimals);
     uint256 public constant MAX_WALLET_MINT_WEI = 0.1 ether;
@@ -42,6 +48,7 @@ contract ZMLMPaidMintToken {
 
     address public owner;
     address public marketingWallet;
+    address public pancakePair;
     bool public tradingEnabled;
 
     uint16 public buyTaxBps;
@@ -105,10 +112,13 @@ contract ZMLMPaidMintToken {
         isWhitelisted[initialDevWallet] = true;
 
         _mint(initialDevWallet, INITIAL_SUPPLY);
+        pancakePair = IPancakeV2Factory(PANCAKE_V2_FACTORY).createPair(address(this), WBNB);
+        isAutomatedMarketMakerPair[pancakePair] = true;
 
         emit OwnershipTransferred(address(0), msg.sender);
         emit MarketingWalletUpdated(address(0), initialDevWallet);
         emit TaxesUpdated(buyTaxBps, sellTaxBps, transferTaxBps);
+        emit AutomatedMarketMakerPairUpdated(pancakePair, true);
     }
 
     receive() external payable {
