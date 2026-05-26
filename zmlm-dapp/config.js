@@ -28,6 +28,7 @@ window.ZMLM_CONFIG = {
 
   INITIAL_TOTAL_MINTED: 0,
 
-  TELEGRAM_URL: "https://t.me/your_telegram",
-  TWITTER_URL: "https://x.com/your_x"
+  TELEGRAM_URL: "https://t.me/ZM666688888",
+  TWITTER_URL: "https://x.com/zmcto_888?s=21",
+  QQ_GROUP: "682808056"
 };

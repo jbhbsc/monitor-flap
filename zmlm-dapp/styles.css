@@ -84,6 +84,8 @@ a {
 .icon-link,
 .wallet-button,
 .mint-button,
+.qq-button,
+.copy-value,
 .step-button {
   border: 1px solid rgba(18, 19, 35, 0.14);
   border-radius: 8px;
@@ -123,6 +125,16 @@ a {
   background: var(--ink);
   color: #fff;
   font-weight: 800;
+}
+
+.qq-button {
+  min-width: 64px;
+  height: 42px;
+  padding: 0 12px;
+  background: #ffffff;
+  color: var(--navy);
+  font-size: 13px;
+  font-weight: 900;
 }
 
 .hero {
@@ -410,6 +422,8 @@ h1 {
 .icon-link:hover,
 .wallet-button:hover,
 .mint-button:not(:disabled):hover,
+.qq-button:hover,
+.copy-value:hover,
 .step-button:hover {
   border-color: rgba(18, 19, 35, 0.26);
   transform: translateY(-1px);
@@ -468,6 +482,24 @@ h1 {
   overflow: hidden;
   color: var(--ink);
   font-size: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.copy-value {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  min-height: 28px;
+  margin-top: 7px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 900;
+  text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

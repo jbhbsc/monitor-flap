@@ -45,7 +45,9 @@
     mintContractText: $("mintContractText"),
     tokenContractText: $("tokenContractText"),
     telegramLink: $("telegramLink"),
-    twitterLink: $("twitterLink")
+    twitterLink: $("twitterLink"),
+    qqCopyButton: $("qqCopyButton"),
+    qqCopyPanelButton: $("qqCopyPanelButton")
   };
 
   function hasEthereum() {
@@ -208,6 +210,7 @@
     els.tokenContractText.textContent = shorten(config.TOKEN_CONTRACT_ADDRESS || config.MINT_CONTRACT_ADDRESS);
     els.telegramLink.href = config.TELEGRAM_URL || "#";
     els.twitterLink.href = config.TWITTER_URL || "#";
+    if (els.qqCopyPanelButton) els.qqCopyPanelButton.textContent = config.QQ_GROUP || "682808056";
 
     els.connectButton.textContent = isConnected ? shorten(state.account) : "连接钱包";
     els.networkDot.classList.toggle("online", onBsc);
@@ -398,9 +401,33 @@
     updateUi();
   }
 
+  async function copyQqGroup() {
+    const group = config.QQ_GROUP || "682808056";
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(group);
+      } else {
+        const input = document.createElement("input");
+        input.value = group;
+        input.setAttribute("readonly", "");
+        input.style.position = "fixed";
+        input.style.opacity = "0";
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand("copy");
+        input.remove();
+      }
+      setStatus(`QQ群号 ${group} 已复制。`, "success");
+    } catch (error) {
+      setStatus(`QQ群号：${group}`, "warning");
+    }
+  }
+
   function bindEvents() {
     els.connectButton.addEventListener("click", connectWallet);
     els.mintButton.addEventListener("click", mint);
+    if (els.qqCopyButton) els.qqCopyButton.addEventListener("click", copyQqGroup);
+    if (els.qqCopyPanelButton) els.qqCopyPanelButton.addEventListener("click", copyQqGroup);
 
     if (els.mintBnbAmount) {
       els.mintBnbAmount.addEventListener("input", () => {
