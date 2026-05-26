@@ -112,6 +112,9 @@ a {
 .mint-button,
 .qq-button,
 .copy-value,
+.page-link,
+.pool-main-button,
+.pool-secondary-button,
 .step-button {
   border: 1px solid rgba(18, 19, 35, 0.14);
   border-radius: 8px;
@@ -163,26 +166,104 @@ a {
   font-weight: 900;
 }
 
+.page-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 72px;
+  height: 42px;
+  padding: 0 14px;
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--navy);
+  font-size: 13px;
+  font-weight: 900;
+}
+
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.02fr) minmax(360px, 0.98fr);
+  grid-template-columns: minmax(440px, 0.92fr) minmax(420px, 0.86fr);
   align-items: center;
-  gap: 44px;
+  gap: 38px;
   min-height: calc(100vh - 178px);
   padding: 34px 0 42px;
 }
 
 .hero-art {
   display: grid;
-  place-items: center;
+  align-content: center;
+  justify-items: center;
+  gap: 16px;
   min-height: 430px;
 }
 
+.home-menu {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: min(416px, 100%);
+  margin-bottom: -2px;
+}
+
+.home-menu-item {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 10px 12px;
+  border: 1px solid rgba(18, 19, 35, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 12px 26px rgba(18, 19, 35, 0.08);
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.home-menu-item span {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: rgba(37, 36, 101, 0.1);
+  color: var(--navy);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.home-menu-item strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-menu-item.active {
+  border-color: rgba(217, 155, 40, 0.62);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(255, 247, 226, 0.86));
+}
+
+.home-menu-item.active span {
+  background: var(--gold);
+  color: #fff;
+}
+
+.home-menu-item:hover {
+  border-color: rgba(18, 19, 35, 0.24);
+  transform: translateY(-1px);
+}
+
 .logo-mark {
-  width: min(520px, 100%);
-  max-height: 58vh;
+  width: min(416px, 100%);
+  max-height: 52vh;
+  padding: 40px 36px 34px;
+  border: 1px solid rgba(18, 19, 35, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.48);
   object-fit: contain;
-  filter: drop-shadow(0 24px 34px rgba(18, 19, 35, 0.16));
+  box-shadow: 0 28px 68px rgba(18, 19, 35, 0.1);
+  filter: drop-shadow(0 18px 28px rgba(18, 19, 35, 0.12));
 }
 
 .mint-panel {
@@ -450,6 +531,7 @@ h1 {
 .mint-button:not(:disabled):hover,
 .qq-button:hover,
 .copy-value:hover,
+.page-link:hover,
 .step-button:hover {
   border-color: rgba(18, 19, 35, 0.26);
   transform: translateY(-1px);
@@ -530,6 +612,260 @@ h1 {
   white-space: nowrap;
 }
 
+.pool-shell {
+  padding-bottom: 42px;
+}
+
+.pool-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.06fr) minmax(280px, 0.58fr);
+  align-items: center;
+  gap: 34px;
+  padding: 54px 0 32px;
+}
+
+.pool-copy h1 {
+  max-width: 860px;
+}
+
+.pool-copy .lead {
+  max-width: 620px;
+  margin-bottom: 0;
+  color: #4d5261;
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.pool-orbit {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 310px;
+  overflow: hidden;
+  border: 1px solid rgba(18, 19, 35, 0.12);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(239, 246, 239, 0.88)),
+    repeating-linear-gradient(90deg, rgba(37, 36, 101, 0.08) 0 1px, transparent 1px 30px);
+  box-shadow: var(--shadow);
+}
+
+.pool-orbit::before,
+.pool-orbit::after {
+  content: "";
+  position: absolute;
+  border: 1px solid rgba(217, 155, 40, 0.44);
+  border-radius: 50%;
+}
+
+.pool-orbit::before {
+  width: 240px;
+  height: 240px;
+}
+
+.pool-orbit::after {
+  width: 170px;
+  height: 170px;
+  border-color: rgba(28, 111, 153, 0.34);
+}
+
+.pool-orbit img {
+  position: relative;
+  z-index: 1;
+  width: 132px;
+  filter: drop-shadow(0 20px 24px rgba(18, 19, 35, 0.18));
+}
+
+.pool-orbit span {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  z-index: 1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.pool-data-grid,
+.pool-feature-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.pool-data-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.pool-card,
+.pool-feature-grid article,
+.pool-action-panel,
+.pool-season-strip {
+  border: 1px solid rgba(18, 19, 35, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 14px 34px rgba(18, 19, 35, 0.08);
+}
+
+.pool-card {
+  min-height: 150px;
+  padding: 18px;
+}
+
+.pool-card-wide {
+  grid-column: 1 / -1;
+  min-height: auto;
+}
+
+.pool-card-label {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.pool-card strong {
+  display: block;
+  margin-top: 12px;
+  color: var(--navy);
+  font-size: 20px;
+  line-height: 1.28;
+}
+
+.pool-card p {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.55;
+}
+
+.pool-feature-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 14px;
+}
+
+.pool-feature-grid article {
+  padding: 20px;
+}
+
+.pool-feature-grid h2 {
+  margin: 0 0 10px;
+  color: var(--navy);
+  font-size: 20px;
+  line-height: 1.25;
+}
+
+.pool-feature-grid p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.65;
+}
+
+.pool-action-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
+  align-items: center;
+  gap: 22px;
+  margin-top: 14px;
+  padding: 24px;
+  background:
+    linear-gradient(120deg, rgba(37, 36, 101, 0.94), rgba(28, 111, 153, 0.9)),
+    #252465;
+  color: #fff;
+}
+
+.pool-action-panel p,
+.pool-action-panel strong,
+.pool-action-panel span {
+  display: block;
+}
+
+.pool-action-panel p {
+  margin: 0 0 8px;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.pool-action-panel strong {
+  font-size: 24px;
+  line-height: 1.28;
+}
+
+.pool-action-panel span {
+  margin-top: 8px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.55;
+}
+
+.pool-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.pool-main-button,
+.pool-secondary-button {
+  min-height: 54px;
+  padding: 0 16px;
+  color: #fff;
+  font-weight: 900;
+}
+
+.pool-main-button {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: linear-gradient(90deg, #d99b28, #f08a2b);
+}
+
+.pool-secondary-button {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.pool-main-button:disabled,
+.pool-secondary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.pool-season-strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 14px;
+  overflow: hidden;
+  background: rgba(18, 19, 35, 0.12);
+}
+
+.pool-season-strip div {
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.pool-season-strip span,
+.pool-season-strip strong {
+  display: block;
+}
+
+.pool-season-strip span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.pool-season-strip strong {
+  margin-top: 8px;
+  color: var(--ink);
+  font-size: 22px;
+  line-height: 1.1;
+}
+
 @media (max-width: 860px) {
   .shell {
     width: min(100% - 22px, 640px);
@@ -570,9 +906,20 @@ h1 {
     min-height: 210px;
   }
 
+  .home-menu {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: min(380px, 100%);
+  }
+
+  .home-menu-item {
+    min-height: 50px;
+  }
+
   .logo-mark {
-    width: min(310px, 84vw);
+    justify-self: center;
+    width: min(330px, 84vw);
     max-height: 260px;
+    padding: 26px 24px 22px;
   }
 
   .mint-panel {
@@ -584,8 +931,26 @@ h1 {
   }
 
   .stats-grid,
-  .info-band {
+  .info-band,
+  .pool-data-grid,
+  .pool-feature-grid,
+  .pool-action-panel,
+  .pool-season-strip {
     grid-template-columns: 1fr;
+  }
+
+  .pool-hero {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding-top: 28px;
+  }
+
+  .pool-orbit {
+    min-height: 240px;
+  }
+
+  .pool-copy .lead {
+    font-size: 16px;
   }
 }
 
@@ -602,6 +967,12 @@ h1 {
     font-size: 13px;
   }
 
+  .page-link,
+  .qq-button {
+    height: 38px;
+    font-size: 12px;
+  }
+
   .mint-panel {
     padding: 16px;
   }
@@ -612,6 +983,20 @@ h1 {
 
   .lead {
     font-size: 15px;
+  }
+
+  .home-menu {
+    grid-template-columns: 1fr;
+  }
+
+  .pool-card,
+  .pool-feature-grid article,
+  .pool-action-panel {
+    padding: 16px;
+  }
+
+  .pool-action-panel strong {
+    font-size: 20px;
   }
 }
 
