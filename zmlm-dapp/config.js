@@ -9,11 +9,11 @@ window.ZMLM_CONFIG = {
   MINT_MODE: "mintFunction",
   MINT_FUNCTION_SELECTOR: "0x1249c58b",
 
-  // Mint rule: each 0.01 BNB mints 1,000 ZMLM.
+  // Mint rule: each 0.01 BNB mints 10,000 ZMLM.
   MIN_MINT_BNB: "0.01",
   MAX_WALLET_MINT_BNB: "0.1",
   MINT_STEP_BNB: "0.01",
-  TOKENS_PER_0_01_BNB: "1000",
+  TOKENS_PER_0_01_BNB: "10000",
   TOKEN_SYMBOL: "ZMLM",
 
   // Frontend progress. Set this to the amount of tokens DEV transfers into the contract for mint inventory.

@@ -221,7 +221,7 @@
       setStatus("请先在 config.js 填入 MINT_CONTRACT_ADDRESS。", "error");
     } else if (!isConnected) {
       setMintButton(true, "先连接钱包");
-      setStatus("每 0.01 BNB 自动到账 1,000 ZMLM，单钱包最多 mint 0.1 BNB。", "neutral");
+      setStatus("每 0.01 BNB 自动到账 10,000 ZMLM，单钱包最多 mint 0.1 BNB。", "neutral");
     } else if (!onBsc) {
       setMintButton(false, "切换到 BSC");
       setStatus("当前钱包不在 BSC 主网，点击按钮可请求切换。", "warning");

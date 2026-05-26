@@ -4,7 +4,7 @@ Static BSC mint DApp for `contracts/ZMLMPaidMintToken.sol`.
 
 ## Mint Rule
 
-- `0.01 BNB` mints `1,000 ZMLM`.
+- `0.01 BNB` mints `10,000 ZMLM`.
 - Mint amount must be a multiple of `0.01 BNB`.
 - One wallet can mint up to `0.1 BNB`, equal to `10,000 ZMLM`.
 - User mint tokens are transferred from the contract inventory.

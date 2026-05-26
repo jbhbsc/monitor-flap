@@ -10,7 +10,7 @@ interface IPancakeV2Factory {
  * @notice Standalone ERC20/BEP20-style token for the ZMLM DApp.
  *
  * Mint:
- * - 0.01 BNB mints 1,000 ZMLM to the buyer.
+ * - 0.01 BNB mints 10,000 ZMLM to the buyer.
  * - Wallet public mint cap is 0.1 BNB.
  * - BNB paid for mint is forwarded to the DEV wallet.
  * - Public mint tokens are transferred from this contract's token balance.
@@ -36,7 +36,7 @@ contract ZMLMPaidMintToken {
     address public constant PANCAKE_V2_FACTORY = 0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73;
     address public constant WBNB = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;
     uint256 public constant MINT_UNIT_WEI = 0.01 ether;
-    uint256 public constant TOKENS_PER_MINT_UNIT = 1_000 * 10 ** uint256(decimals);
+    uint256 public constant TOKENS_PER_MINT_UNIT = 10_000 * 10 ** uint256(decimals);
     uint256 public constant MAX_WALLET_MINT_WEI = 0.1 ether;
     uint256 public constant INITIAL_SUPPLY = 100_000_000 * 10 ** uint256(decimals);
     uint16 public constant BPS_DENOMINATOR = 10_000;
