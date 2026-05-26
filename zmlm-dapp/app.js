@@ -418,8 +418,10 @@
         input.remove();
       }
       setStatus(`QQ群号 ${group} 已复制。`, "success");
+      window.alert(`QQ群号 ${group} 已复制。`);
     } catch (error) {
       setStatus(`QQ群号：${group}`, "warning");
+      window.alert(`QQ群号：${group}`);
     }
   }
 
