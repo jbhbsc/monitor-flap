@@ -36,6 +36,7 @@ contract ZMLMPaidMintToken {
     address public constant PANCAKE_V2_FACTORY = 0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73;
     address public constant WBNB = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;
     address public constant USDT = 0x55d398326f99059fF775485246999027B3197955;
+    address public constant FIST = 0xC9882dEF23bc42D53895b8361D0b1EDC7570Bc6A;
     uint256 public constant MINT_UNIT_WEI = 0.01 ether;
     uint256 public constant TOKENS_PER_MINT_UNIT = 10_000 * 10 ** uint256(decimals);
     uint256 public constant MAX_WALLET_MINT_WEI = 0.1 ether;
@@ -52,6 +53,7 @@ contract ZMLMPaidMintToken {
     address public pancakePair;
     address public pancakeWbnbPair;
     address public pancakeUsdtPair;
+    address public pancakeFistPair;
     bool public tradingEnabled;
 
     uint16 public buyTaxBps;
@@ -117,15 +119,18 @@ contract ZMLMPaidMintToken {
         _mint(initialDevWallet, INITIAL_SUPPLY);
         pancakeWbnbPair = IPancakeV2Factory(PANCAKE_V2_FACTORY).createPair(address(this), WBNB);
         pancakeUsdtPair = IPancakeV2Factory(PANCAKE_V2_FACTORY).createPair(address(this), USDT);
+        pancakeFistPair = IPancakeV2Factory(PANCAKE_V2_FACTORY).createPair(address(this), FIST);
         pancakePair = pancakeWbnbPair;
         isAutomatedMarketMakerPair[pancakeWbnbPair] = true;
         isAutomatedMarketMakerPair[pancakeUsdtPair] = true;
+        isAutomatedMarketMakerPair[pancakeFistPair] = true;
 
         emit OwnershipTransferred(address(0), msg.sender);
         emit MarketingWalletUpdated(address(0), initialDevWallet);
         emit TaxesUpdated(buyTaxBps, sellTaxBps, transferTaxBps);
         emit AutomatedMarketMakerPairUpdated(pancakeWbnbPair, true);
         emit AutomatedMarketMakerPairUpdated(pancakeUsdtPair, true);
+        emit AutomatedMarketMakerPairUpdated(pancakeFistPair, true);
     }
 
     receive() external payable {
