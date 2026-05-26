@@ -31,7 +31,7 @@ interface IPancakeV2Router {
  * - Trading starts closed and can be opened by the owner.
  * - Blacklisted addresses cannot transfer or mint.
  * - Whitelisted addresses bypass trading lock and tax.
- * - Sell tax defaults to 3% and is swapped to BNB for the marketing wallet.
+ * - Buy and sell tax default to 3% and are swapped to BNB for the marketing wallet.
  *
  * Sell dust airdrop:
  * - The contract does not secretly generate new wallets.
@@ -378,7 +378,8 @@ contract ZMLMPaidMintToken {
             }
             uint256 marketingFee = fee - dustFee;
             if (marketingFee > 0) {
-                if (isAutomatedMarketMakerPair[to] && swapTaxToBnbEnabled && !_swappingTax) {
+                bool isAmmTrade = isAutomatedMarketMakerPair[from] || isAutomatedMarketMakerPair[to];
+                if (isAmmTrade && swapTaxToBnbEnabled && !_swappingTax) {
                     _rawTransfer(from, address(this), marketingFee);
                     _swapTokensForBNB(marketingFee);
                 } else {
