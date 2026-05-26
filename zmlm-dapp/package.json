@@ -1,0 +1,9 @@
+{
+  "name": "zmlm-dapp",
+  "private": true,
+  "version": "1.0.0",
+  "description": "ZMLM wallet connect and mint dapp",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

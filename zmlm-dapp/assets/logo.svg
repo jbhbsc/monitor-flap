@@ -1,0 +1,64 @@
+<svg width="1200" height="1200" viewBox="0 0 1200 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="1200" fill="#fbfbf7"/>
+  <g transform="translate(95 70)">
+    <path d="M222 310C205 223 234 142 310 114C397 84 487 132 524 191L483 239C450 196 387 165 331 184C282 201 268 254 283 314L222 310Z" fill="#151414"/>
+    <path d="M283 314C270 354 280 403 310 431C270 443 236 427 222 395C211 371 212 340 222 310L283 314Z" fill="#151414"/>
+    <path d="M736 187C799 125 902 109 957 178C1014 250 991 353 937 397L881 369C917 335 930 273 900 235C868 194 810 210 771 247L736 187Z" fill="#d99b28"/>
+    <path d="M881 369C849 370 818 352 807 322C774 351 771 390 798 415C819 434 852 432 881 369Z" fill="#201b14"/>
+    <path d="M937 397C1012 423 1065 491 1044 575C1020 671 925 708 860 694L842 626C894 638 950 614 966 560C981 510 947 465 901 443L937 397Z" fill="#48ab51"/>
+    <path d="M842 626C813 606 783 579 780 542C744 571 740 618 771 651C792 674 823 684 860 694L842 626Z" fill="#d7b15b"/>
+    <path d="M763 829C721 909 637 958 558 923C467 883 442 783 464 721L535 714C516 765 534 826 583 849C631 871 677 843 706 794L763 829Z" fill="#202d83"/>
+    <path d="M535 714C558 688 592 675 624 687C608 641 570 622 533 639C507 650 487 677 464 721L535 714Z" fill="#4a2a16"/>
+    <path d="M309 776C232 748 178 675 199 590C222 499 314 462 379 475L397 543C346 531 293 554 276 603C259 654 294 700 341 723L309 776Z" fill="#d6433f"/>
+    <path d="M397 543C421 565 434 600 423 633C469 619 490 582 475 546C463 518 432 489 379 475L397 543Z" fill="#7e3b18"/>
+    <g stroke="#72736d" stroke-width="9" stroke-linecap="round">
+      <path d="M531 196L531 236"/>
+      <path d="M551 198L551 238"/>
+      <path d="M572 199L572 239"/>
+      <path d="M594 199L594 239"/>
+      <path d="M615 196L615 236"/>
+      <path d="M952 419L992 424"/>
+      <path d="M947 438L987 445"/>
+      <path d="M941 458L980 468"/>
+      <path d="M934 478L970 493"/>
+      <path d="M756 761L785 789"/>
+      <path d="M741 777L768 807"/>
+      <path d="M724 791L749 823"/>
+      <path d="M707 804L729 837"/>
+      <path d="M327 732L299 761"/>
+      <path d="M311 716L281 743"/>
+      <path d="M296 699L263 722"/>
+      <path d="M283 682L248 702"/>
+      <path d="M258 426L220 414"/>
+      <path d="M252 446L214 434"/>
+      <path d="M248 467L208 458"/>
+      <path d="M246 488L206 482"/>
+    </g>
+    <g>
+      <path d="M648 254C611 356 550 388 514 456C487 506 487 566 523 612C488 556 521 505 560 465C602 422 659 373 695 282L648 254Z" fill="url(#flame1)"/>
+      <path d="M591 426C546 492 514 570 548 640C568 589 619 558 659 513C696 470 724 423 747 360C711 397 646 444 591 426Z" fill="url(#flame2)"/>
+      <path d="M604 613C554 626 511 672 506 725C554 686 620 708 669 677C718 647 741 597 760 532C712 582 663 598 604 613Z" fill="url(#wave1)"/>
+      <path d="M597 649C622 691 587 746 537 773C638 775 714 714 727 633C692 681 631 693 597 649Z" fill="#244c98"/>
+      <circle cx="654" cy="496" r="28" fill="#2db5aa"/>
+      <path d="M569 584C546 603 538 638 560 660C581 681 616 674 631 647C605 659 574 639 584 607C580 598 575 590 569 584Z" fill="#78aaa4"/>
+    </g>
+    <text x="505" y="1070" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-size="156" font-weight="900" fill="#29245f">ZMLM</text>
+  </g>
+  <defs>
+    <linearGradient id="flame1" x1="490" y1="607" x2="700" y2="271" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#e3bd4d"/>
+      <stop offset="0.52" stop-color="#e78b30"/>
+      <stop offset="1" stop-color="#d52f3d"/>
+    </linearGradient>
+    <linearGradient id="flame2" x1="548" y1="636" x2="748" y2="360" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#e4d774"/>
+      <stop offset="0.52" stop-color="#de8b43"/>
+      <stop offset="1" stop-color="#cf3142"/>
+    </linearGradient>
+    <linearGradient id="wave1" x1="507" y1="717" x2="752" y2="543" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1c4c8a"/>
+      <stop offset="0.54" stop-color="#6fb1a4"/>
+      <stop offset="1" stop-color="#e4c75a"/>
+    </linearGradient>
+  </defs>
+</svg>
