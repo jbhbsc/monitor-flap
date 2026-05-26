@@ -1,9 +1,9 @@
 window.ZMLM_CONFIG = {
   // Deploy zmlm-dapp/contracts/ZMLMPaidMintToken.sol and fill the address here.
-  MINT_CONTRACT_ADDRESS: "0xE7F861DeBEcA9B321cBA5e589C5357817617827B",
+  MINT_CONTRACT_ADDRESS: "0x599348190E2B869A7fa60Ca0D02446Fb50E17777",
 
   // The paid-mint contract is also the token contract. Fill the same address after deployment.
-  TOKEN_CONTRACT_ADDRESS: "0xE7F861DeBEcA9B321cBA5e589C5357817617827B",
+  TOKEN_CONTRACT_ADDRESS: "0x599348190E2B869A7fa60Ca0D02446Fb50E17777",
 
   // payable mint() selector.
   MINT_MODE: "mintFunction",

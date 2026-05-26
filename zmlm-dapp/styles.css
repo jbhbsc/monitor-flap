@@ -74,6 +74,32 @@ a {
   border-radius: 8px;
 }
 
+.contract-strip {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  max-width: min(460px, 42vw);
+  padding: 8px 12px;
+  border: 1px solid rgba(18, 19, 35, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.contract-strip span {
+  flex: 0 0 auto;
+}
+
+.contract-strip strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--navy);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .nav-actions {
   display: flex;
   align-items: center;
@@ -512,10 +538,17 @@ h1 {
 
   .topbar {
     align-items: flex-start;
+    flex-wrap: wrap;
   }
 
   .brand span {
     display: none;
+  }
+
+  .contract-strip {
+    order: 3;
+    width: 100%;
+    max-width: none;
   }
 
   .nav-actions {
