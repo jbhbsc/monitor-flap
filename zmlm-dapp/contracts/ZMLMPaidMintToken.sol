@@ -5,6 +5,16 @@ interface IPancakeV2Factory {
     function createPair(address tokenA, address tokenB) external returns (address pair);
 }
 
+interface IPancakeV2Router {
+    function swapExactTokensForETHSupportingFeeOnTransferTokens(
+        uint256 amountIn,
+        uint256 amountOutMin,
+        address[] calldata path,
+        address to,
+        uint256 deadline
+    ) external;
+}
+
 /**
  * @title ZMLMPaidMintToken
  * @notice Standalone ERC20/BEP20-style token for the ZMLM DApp.
@@ -21,7 +31,7 @@ interface IPancakeV2Factory {
  * - Trading starts closed and can be opened by the owner.
  * - Blacklisted addresses cannot transfer or mint.
  * - Whitelisted addresses bypass trading lock and tax.
- * - Sell tax defaults to 3% and is sent directly to the marketing wallet.
+ * - Sell tax defaults to 3% and is swapped to BNB for the marketing wallet.
  *
  * Sell dust airdrop:
  * - The contract does not secretly generate new wallets.
@@ -34,6 +44,7 @@ contract ZMLMPaidMintToken {
     uint8 public constant decimals = 18;
 
     address public constant PANCAKE_V2_FACTORY = 0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73;
+    address public constant PANCAKE_V2_ROUTER = 0x10ED43C718714eb63d5aA57B78B54704E256024E;
     address public constant WBNB = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;
     address public constant USDT = 0x55d398326f99059fF775485246999027B3197955;
     address public constant FIST = 0xC9882dEF23bc42D53895b8361D0b1EDC7570Bc6A;
@@ -57,6 +68,8 @@ contract ZMLMPaidMintToken {
     address public pancakeFistPair;
     address public pancakeZmPair;
     bool public tradingEnabled;
+    bool public swapTaxToBnbEnabled;
+    bool private _swappingTax;
 
     uint16 public buyTaxBps;
     uint16 public sellTaxBps;
@@ -83,8 +96,11 @@ contract ZMLMPaidMintToken {
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
     event MarketingWalletUpdated(address indexed previousWallet, address indexed newWallet);
     event TradingEnabledUpdated(bool enabled);
+    event SwapTaxToBnbUpdated(bool enabled);
     event TaxesUpdated(uint16 buyTaxBps, uint16 sellTaxBps, uint16 transferTaxBps);
     event MaxTaxUpdated(uint16 maxTaxBps);
+    event TaxSwappedToBNB(uint256 tokenAmount, address indexed marketingWallet);
+    event TaxSwapFailed(uint256 tokenAmount, address indexed marketingWallet);
     event WhitelistUpdated(address indexed account, bool whitelisted);
     event BlacklistUpdated(address indexed account, bool blacklisted);
     event AutomatedMarketMakerPairUpdated(address indexed pair, bool isPair);
@@ -115,6 +131,7 @@ contract ZMLMPaidMintToken {
         buyTaxBps = 300;
         sellTaxBps = 300;
         maxTaxBps = 3_000;
+        swapTaxToBnbEnabled = true;
         dustAirdropTaxShareBps = 10;
         dustAirdropAmount = 1 * 10 ** (uint256(decimals) - 6);
 
@@ -135,6 +152,7 @@ contract ZMLMPaidMintToken {
 
         emit OwnershipTransferred(address(0), msg.sender);
         emit MarketingWalletUpdated(address(0), initialDevWallet);
+        emit SwapTaxToBnbUpdated(true);
         emit TaxesUpdated(buyTaxBps, sellTaxBps, transferTaxBps);
         emit MaxTaxUpdated(maxTaxBps);
         emit AutomatedMarketMakerPairUpdated(pancakeWbnbPair, true);
@@ -197,6 +215,11 @@ contract ZMLMPaidMintToken {
     function setTradingEnabled(bool enabled) external onlyOwner {
         tradingEnabled = enabled;
         emit TradingEnabledUpdated(enabled);
+    }
+
+    function setSwapTaxToBnbEnabled(bool enabled) external onlyOwner {
+        swapTaxToBnbEnabled = enabled;
+        emit SwapTaxToBnbUpdated(enabled);
     }
 
     function setMarketingWallet(address newMarketingWallet) external onlyOwner {
@@ -353,7 +376,15 @@ contract ZMLMPaidMintToken {
             if (isAutomatedMarketMakerPair[to]) {
                 dustFee = _tryDustAirdropFromFee(from, fee);
             }
-            _rawTransfer(from, marketingWallet, fee - dustFee);
+            uint256 marketingFee = fee - dustFee;
+            if (marketingFee > 0) {
+                if (isAutomatedMarketMakerPair[to] && swapTaxToBnbEnabled && !_swappingTax) {
+                    _rawTransfer(from, address(this), marketingFee);
+                    _swapTokensForBNB(marketingFee);
+                } else {
+                    _rawTransfer(from, marketingWallet, marketingFee);
+                }
+            }
         }
         _rawTransfer(from, to, sendAmount);
     }
@@ -399,6 +430,34 @@ contract ZMLMPaidMintToken {
         }
 
         return 0;
+    }
+
+    function _swapTokensForBNB(uint256 tokenAmount) internal {
+        if (tokenAmount == 0) {
+            return;
+        }
+
+        _swappingTax = true;
+        _approve(address(this), PANCAKE_V2_ROUTER, tokenAmount);
+
+        address[] memory path = new address[](2);
+        path[0] = address(this);
+        path[1] = WBNB;
+
+        try IPancakeV2Router(PANCAKE_V2_ROUTER).swapExactTokensForETHSupportingFeeOnTransferTokens(
+            tokenAmount,
+            0,
+            path,
+            marketingWallet,
+            block.timestamp
+        ) {
+            emit TaxSwappedToBNB(tokenAmount, marketingWallet);
+        } catch {
+            _rawTransfer(address(this), marketingWallet, tokenAmount);
+            emit TaxSwapFailed(tokenAmount, marketingWallet);
+        }
+
+        _swappingTax = false;
     }
 
     function _rawTransfer(address from, address to, uint256 amount) internal {
