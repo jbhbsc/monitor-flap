@@ -256,12 +256,13 @@ a {
 
 .logo-mark {
   width: min(416px, 100%);
-  max-height: 52vh;
-  padding: 40px 36px 34px;
+  max-height: 54vh;
+  aspect-ratio: 1 / 1;
+  padding: 0;
   border: 1px solid rgba(18, 19, 35, 0.08);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.48);
-  object-fit: contain;
+  object-fit: cover;
   box-shadow: 0 28px 68px rgba(18, 19, 35, 0.1);
   filter: drop-shadow(0 18px 28px rgba(18, 19, 35, 0.12));
 }
@@ -672,7 +673,11 @@ h1 {
 .pool-orbit img {
   position: relative;
   z-index: 1;
-  width: 132px;
+  width: min(230px, 72%);
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 20px 34px rgba(18, 19, 35, 0.16);
   filter: drop-shadow(0 20px 24px rgba(18, 19, 35, 0.18));
 }
 
@@ -919,7 +924,6 @@ h1 {
     justify-self: center;
     width: min(330px, 84vw);
     max-height: 260px;
-    padding: 26px 24px 22px;
   }
 
   .mint-panel {
