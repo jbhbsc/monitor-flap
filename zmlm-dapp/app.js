@@ -185,9 +185,10 @@
     const totalSupply = Number(config.TOTAL_MINT_SUPPLY || 0);
     const totalMinted = Math.max(0, Number(state.totalMinted || 0));
     const percent = totalSupply > 0 ? Math.min(100, (totalMinted / totalSupply) * 100) : 0;
+    const displayMinted = MINT_PROGRESS_ENABLED ? totalMinted : 0;
     const displayPercent = MINT_PROGRESS_ENABLED ? percent : 0;
 
-    els.totalMinted.textContent = formatToken(totalMinted);
+    els.totalMinted.textContent = formatToken(displayMinted);
     els.maxSupply.textContent = formatToken(totalSupply);
     if (els.progressBlock) els.progressBlock.classList.toggle("progress-paused", !MINT_PROGRESS_ENABLED);
     els.progressPercent.textContent = `${displayPercent.toFixed(displayPercent >= 10 ? 0 : 1)}%`;
