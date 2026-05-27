@@ -31,7 +31,9 @@ interface IPancakeV2Router {
  * - Trading starts closed and can be opened by the owner.
  * - Blacklisted addresses cannot transfer or mint.
  * - Whitelisted addresses bypass trading lock and tax.
- * - Buy and sell tax default to 3% and are swapped to BNB for the marketing wallet.
+ * - Buy and sell tax default to 3%.
+ * - Tax tokens are held by this contract and swapped to BNB for the marketing wallet.
+ * - If a swap fails, tokens remain in this contract and can be retried later.
  *
  * Sell dust airdrop:
  * - The contract does not secretly generate new wallets.
@@ -59,6 +61,7 @@ contract ZMLMPaidMintToken {
     uint256 public totalSupply;
     uint256 public totalMintedTokens;
     uint256 public totalMintedSteps;
+    uint256 public collectedTaxTokens;
 
     address public owner;
     address public marketingWallet;
@@ -101,6 +104,7 @@ contract ZMLMPaidMintToken {
     event MaxTaxUpdated(uint16 maxTaxBps);
     event TaxSwappedToBNB(uint256 tokenAmount, address indexed marketingWallet);
     event TaxSwapFailed(uint256 tokenAmount, address indexed marketingWallet);
+    event TaxTokensCollected(uint256 tokenAmount, uint256 totalCollectedTaxTokens);
     event WhitelistUpdated(address indexed account, bool whitelisted);
     event BlacklistUpdated(address indexed account, bool blacklisted);
     event AutomatedMarketMakerPairUpdated(address indexed pair, bool isPair);
@@ -110,6 +114,7 @@ contract ZMLMPaidMintToken {
     event SellDustAirdrop(address indexed recipient, uint256 amount, address indexed sellSender);
     event RescueToken(address indexed token, address indexed to, uint256 amount);
     event RescueBNB(address indexed to, uint256 amount);
+    event CollectedTaxTokensWithdrawn(address indexed to, uint256 amount);
 
     modifier onlyOwner() {
         require(msg.sender == owner, "ZMLM: caller is not owner");
@@ -340,6 +345,27 @@ contract ZMLMPaidMintToken {
         emit RescueBNB(to, amount);
     }
 
+    function swapCollectedTaxToBNB(uint256 tokenAmount) external onlyOwner {
+        require(swapTaxToBnbEnabled, "ZMLM: tax swap disabled");
+        uint256 amountToSwap = tokenAmount == 0 ? collectedTaxTokens : tokenAmount;
+        require(amountToSwap > 0, "ZMLM: no tax to swap");
+        require(amountToSwap <= collectedTaxTokens, "ZMLM: amount exceeds collected tax");
+        require(amountToSwap <= _balances[address(this)], "ZMLM: amount exceeds contract balance");
+        _swapTokensForBNB(amountToSwap);
+    }
+
+    function withdrawCollectedTaxTokens(address to, uint256 tokenAmount) external onlyOwner {
+        require(to != address(0), "ZMLM: zero recipient");
+        uint256 amountToWithdraw = tokenAmount == 0 ? collectedTaxTokens : tokenAmount;
+        require(amountToWithdraw > 0, "ZMLM: no tax to withdraw");
+        require(amountToWithdraw <= collectedTaxTokens, "ZMLM: amount exceeds collected tax");
+        require(amountToWithdraw <= _balances[address(this)], "ZMLM: amount exceeds contract balance");
+
+        collectedTaxTokens -= amountToWithdraw;
+        _rawTransfer(address(this), to, amountToWithdraw);
+        emit CollectedTaxTokensWithdrawn(to, amountToWithdraw);
+    }
+
     function _publicMint(address buyer, uint256 bnbAmount) internal {
         require(buyer != address(0), "ZMLM: zero buyer");
         require(!isBlacklisted[buyer], "ZMLM: blacklisted buyer");
@@ -379,11 +405,11 @@ contract ZMLMPaidMintToken {
             uint256 marketingFee = fee - dustFee;
             if (marketingFee > 0) {
                 bool isAmmTrade = isAutomatedMarketMakerPair[from] || isAutomatedMarketMakerPair[to];
-                if (isAmmTrade && swapTaxToBnbEnabled && !_swappingTax) {
-                    _rawTransfer(from, address(this), marketingFee);
-                    _swapTokensForBNB(marketingFee);
-                } else {
-                    _rawTransfer(from, marketingWallet, marketingFee);
+                _rawTransfer(from, address(this), marketingFee);
+                collectedTaxTokens += marketingFee;
+                emit TaxTokensCollected(marketingFee, collectedTaxTokens);
+                if (isAmmTrade && isAutomatedMarketMakerPair[to] && swapTaxToBnbEnabled && !_swappingTax) {
+                    _swapTokensForBNB(collectedTaxTokens);
                 }
             }
         }
@@ -433,9 +459,9 @@ contract ZMLMPaidMintToken {
         return 0;
     }
 
-    function _swapTokensForBNB(uint256 tokenAmount) internal {
+    function _swapTokensForBNB(uint256 tokenAmount) internal returns (bool) {
         if (tokenAmount == 0) {
-            return;
+            return false;
         }
 
         _swappingTax = true;
@@ -452,13 +478,20 @@ contract ZMLMPaidMintToken {
             marketingWallet,
             block.timestamp
         ) {
+            if (collectedTaxTokens >= tokenAmount) {
+                collectedTaxTokens -= tokenAmount;
+            } else {
+                collectedTaxTokens = 0;
+            }
             emit TaxSwappedToBNB(tokenAmount, marketingWallet);
+            _swappingTax = false;
+            return true;
         } catch {
-            _rawTransfer(address(this), marketingWallet, tokenAmount);
             emit TaxSwapFailed(tokenAmount, marketingWallet);
         }
 
         _swappingTax = false;
+        return false;
     }
 
     function _rawTransfer(address from, address to, uint256 amount) internal {

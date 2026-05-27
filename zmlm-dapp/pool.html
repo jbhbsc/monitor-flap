@@ -17,7 +17,7 @@
 
         <div class="contract-strip" aria-label="ZMLM contract address">
           <span>ZMLM：</span>
-          <strong>0x599348190E2B869A7fa60Ca0D02446Fb50E17777</strong>
+          <strong id="poolTokenAddress">0x599348190E2B869A7fa60Ca0D02446Fb50E17777</strong>
         </div>
 
         <div class="nav-actions">
@@ -28,6 +28,7 @@
           <a class="icon-link twitter" href="https://x.com/zmcto_888?s=21" target="_blank" rel="noreferrer" aria-label="X">
             <img src="./assets/x.svg" alt="" aria-hidden="true" />
           </a>
+          <button id="poolConnectButton" class="wallet-button" type="button">连接钱包</button>
         </div>
       </nav>
 
@@ -35,10 +36,10 @@
         <div class="pool-copy">
           <div class="chain-pill">
             <span class="dot online"></span>
-            <span>BSC 分红池预告</span>
+            <span>BSC 链上分红池</span>
           </div>
           <h1 id="poolTitle">💰 追梦分红池 · 共享营销红利</h1>
-          <p class="lead">质押 ZMLM，即可瓜分 营销钱包 每日收益<br />即将上线 · BSC 链上自动分红</p>
+          <p class="lead">质押 ZMLM，即可按权重瓜分营销钱包注入的 BNB<br />每小时结算 · 手动领取 · 可长期累计</p>
         </div>
 
         <div class="pool-orbit" aria-hidden="true">
@@ -56,21 +57,40 @@
 
         <article class="pool-card">
           <span class="pool-card-label">分红分配规则</span>
-          <strong>🔄 按质押占比分配，每日自动到账</strong>
-          <p>质押越多，分享营销红利越多</p>
+          <strong>🔄 按质押数量占比分配，每小时结算</strong>
+          <p>可手动领取，也可以一直累计，想领时再领</p>
         </article>
 
         <article class="pool-card">
-          <span class="pool-card-label">当前营销钱包余额（模拟展示）</span>
-          <strong>🪙 0 BNB</strong>
-          <p>首笔分红将在质押池开启后立即注入</p>
+          <span class="pool-card-label">待分配 BNB</span>
+          <strong>🪙 <span id="poolUndistributedRewards">0</span> BNB</strong>
+          <p>营销钱包注入后，将在整点结算周期进入分红</p>
         </article>
 
         <article class="pool-card pool-card-wide">
           <span class="pool-card-label">你的质押</span>
-          <strong>0 ZMLM → 占分红池比例 0% → 预计日分红 0 BNB</strong>
-          <p>连接钱包功能将在矿池正式开启后开放</p>
+          <strong><span id="poolUserStake">0</span> ZMLM → 权重 <span id="poolUserWeight">0%</span> → 可领取 <span id="poolPendingRewards">0</span> BNB</strong>
+          <p>全池质押 <strong id="poolTotalStaked">0</strong> ZMLM · 下次结算 <strong id="poolNextDistribution">--</strong></p>
         </article>
+      </section>
+
+      <section class="pool-operate-panel" aria-label="分红池质押操作">
+        <div class="pool-operate-grid">
+          <label>
+            <span>质押数量</span>
+            <div class="amount-control">
+              <input id="poolStakeAmount" type="number" min="0" step="1" placeholder="0" inputmode="decimal" />
+              <span>ZMLM</span>
+            </div>
+          </label>
+          <div class="pool-actions pool-actions-live">
+            <button id="poolApproveButton" class="pool-secondary-button" type="button">授权 ZMLM</button>
+            <button id="poolStakeButton" class="pool-main-button" type="button">质押</button>
+            <button id="poolUnstakeButton" class="pool-secondary-button" type="button">解除质押</button>
+            <button id="poolClaimButton" class="pool-main-button" type="button">领取 BNB</button>
+          </div>
+        </div>
+        <p id="poolStatusText" class="status-text" role="status">分红池合约部署后，在 config.js 填入 DIVIDEND_POOL_ADDRESS 即可启用。</p>
       </section>
 
       <section class="pool-feature-grid" aria-label="分红池特色">
@@ -80,7 +100,7 @@
         </article>
         <article>
           <h2>⛓️ 链上透明分红</h2>
-          <p>每一笔分红发放均可通过 BSC 浏览器查询，智能合约自动执行，无需担心跑路。</p>
+          <p>每一笔注入、结算和领取均可通过 BSC 浏览器查询，智能合约自动记录。</p>
         </article>
         <article>
           <h2>🎯 追梦者加成</h2>
@@ -99,8 +119,8 @@
           <span>锁仓，然后坐享来自项目成长的每一份利润。</span>
         </div>
         <div class="pool-actions">
-          <button class="pool-main-button" type="button" disabled>🔒 即将开启 · 抢占首轮分红</button>
-          <button class="pool-secondary-button" type="button" disabled>📊 预览营销钱包分红蓝图</button>
+          <button class="pool-main-button" type="button" disabled>每小时结算 · 手动领取</button>
+          <button class="pool-secondary-button" type="button" disabled>营销钱包注入 BNB 后开始分配</button>
         </div>
       </section>
 
@@ -115,5 +135,7 @@
         </div>
       </section>
     </main>
+    <script src="./config.js"></script>
+    <script src="./pool.js"></script>
   </body>
 </html>

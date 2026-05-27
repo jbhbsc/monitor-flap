@@ -764,6 +764,37 @@ h1 {
   margin-top: 14px;
 }
 
+.pool-operate-panel {
+  margin-top: 14px;
+  padding: 18px;
+  border: 1px solid rgba(18, 19, 35, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 14px 34px rgba(18, 19, 35, 0.08);
+}
+
+.pool-operate-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.85fr) minmax(360px, 1.15fr);
+  gap: 14px;
+  align-items: end;
+}
+
+.pool-operate-grid label {
+  display: grid;
+  gap: 8px;
+}
+
+.pool-operate-grid label > span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.pool-actions-live {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .pool-feature-grid article {
   padding: 20px;
 }
@@ -950,6 +981,8 @@ h1 {
   .info-band,
   .pool-data-grid,
   .pool-feature-grid,
+  .pool-operate-grid,
+  .pool-actions-live,
   .pool-action-panel,
   .pool-season-strip {
     grid-template-columns: 1fr;

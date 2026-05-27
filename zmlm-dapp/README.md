@@ -62,3 +62,50 @@ After deployment, edit `config.js`:
 - `TELEGRAM_URL` and `TWITTER_URL`: community links.
 
 The frontend calls payable `mint()` using selector `0x1249c58b`.
+
+## Batch Sweep BNB
+
+The local script `scripts/sweep-bnb.js` can batch transfer BNB from multiple wallets into one receive address. Keep private keys only in your local `.env` file and never commit it.
+
+1. Install dependencies:
+
+```bash
+npm.cmd install
+```
+
+2. Copy `.env.example` to `.env`, then fill:
+
+```text
+BNB_SWEEP_TO=0xYourReceiveAddress
+BNB_SWEEP_PRIVATE_KEYS=0xkey1,0xkey2
+```
+
+`BNB_SWEEP_TO` can also be the ZMLM mint contract address. The deployed contract has a payable `receive()` function, so a plain BNB transfer to the contract can trigger mint.
+
+3. Preview only:
+
+```bash
+npm.cmd run sweep:bnb
+```
+
+4. Preview a fixed transfer amount from every wallet:
+
+```bash
+npm.cmd run sweep:bnb -- --amount 0.01
+```
+
+5. Execute real transfers:
+
+```bash
+npm.cmd run sweep:bnb -- --execute
+```
+
+Or execute a fixed transfer amount:
+
+```bash
+npm.cmd run sweep:bnb -- --amount 0.01 --execute
+```
+
+The script estimates gas per wallet. A plain wallet transfer usually uses `21000` gas, but sending BNB to the ZMLM mint contract needs more gas because the contract mints tokens and forwards BNB internally. If the RPC cannot estimate gas, set `BNB_SWEEP_GAS_LIMIT=200000` in `.env`.
+
+The script keeps a small BNB reserve for gas and skips wallets without enough balance. If no amount is provided, it transfers each wallet's available BNB after gas and reserve.
