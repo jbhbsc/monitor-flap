@@ -16,13 +16,13 @@
   const MINT_STEP_BNB = Number(config.MINT_STEP_BNB || "0.01");
   const TOKENS_PER_STEP = Number(config.TOKENS_PER_0_01_BNB || "1000");
   const TOKEN_SYMBOL = config.TOKEN_SYMBOL || "ZMLM";
+  const MINT_PROGRESS_ENABLED = config.MINT_PROGRESS_ENABLED === true || config.MINT_PROGRESS_ENABLED === "true";
 
   const state = {
     account: "",
     chainId: "",
     walletMintedBnb: 0,
     totalMinted: Number(config.INITIAL_TOTAL_MINTED || 0),
-    progressEnabled: localStorage.getItem("zmlm:progress-enabled") === "1",
     lastLimitAlertKey: ""
   };
 
@@ -39,7 +39,6 @@
     totalMinted: $("totalMinted"),
     maxSupply: $("maxSupply"),
     progressBlock: $("progressBlock"),
-    progressToggle: $("progressToggle"),
     progressPercent: $("progressPercent"),
     progressBar: $("progressBar"),
     mintPrice: $("mintPrice"),
@@ -186,12 +185,11 @@
     const totalSupply = Number(config.TOTAL_MINT_SUPPLY || 0);
     const totalMinted = Math.max(0, Number(state.totalMinted || 0));
     const percent = totalSupply > 0 ? Math.min(100, (totalMinted / totalSupply) * 100) : 0;
-    const displayPercent = state.progressEnabled ? percent : 0;
+    const displayPercent = MINT_PROGRESS_ENABLED ? percent : 0;
 
     els.totalMinted.textContent = formatToken(totalMinted);
     els.maxSupply.textContent = formatToken(totalSupply);
-    if (els.progressToggle) els.progressToggle.checked = state.progressEnabled;
-    if (els.progressBlock) els.progressBlock.classList.toggle("progress-paused", !state.progressEnabled);
+    if (els.progressBlock) els.progressBlock.classList.toggle("progress-paused", !MINT_PROGRESS_ENABLED);
     els.progressPercent.textContent = `${displayPercent.toFixed(displayPercent >= 10 ? 0 : 1)}%`;
     els.progressBar.style.width = `${displayPercent}%`;
   }
@@ -446,14 +444,6 @@
         }
       });
       els.mintBnbAmount.addEventListener("blur", updateUi);
-    }
-
-    if (els.progressToggle) {
-      els.progressToggle.addEventListener("change", () => {
-        state.progressEnabled = els.progressToggle.checked;
-        localStorage.setItem("zmlm:progress-enabled", state.progressEnabled ? "1" : "0");
-        updateProgress();
-      });
     }
 
     if (hasEthereum()) {

@@ -18,6 +18,8 @@ window.ZMLM_CONFIG = {
 
   // Frontend progress. Set this to the amount of tokens DEV transfers into the contract for mint inventory.
   TOTAL_MINT_SUPPLY: 10000000,
+  // Backend/admin display switch. false means every user sees 0% progress.
+  MINT_PROGRESS_ENABLED: false,
 
   // totalMintedTokens() returns uint256 token units with 18 decimals.
   TOTAL_MINTED_SELECTOR: "0x8e32e316",
