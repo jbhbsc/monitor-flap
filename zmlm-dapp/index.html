@@ -80,10 +80,16 @@
             <p>最少 <strong id="minMintBnb">0.01</strong> BNB · 单钱包最多 <strong>0.1</strong> BNB · 剩余额度 <strong id="walletRemainingBnb">0.1</strong> BNB</p>
           </div>
 
-          <div class="progress-block" aria-label="Total mint progress">
+          <div id="progressBlock" class="progress-block" aria-label="Total mint progress">
             <div class="progress-head">
               <span>Mint Progress</span>
-              <span id="progressPercent">0%</span>
+              <div class="progress-actions">
+                <label class="progress-toggle" title="控制页面进度条是否启动">
+                  <input id="progressToggle" type="checkbox" />
+                  <span>启动</span>
+                </label>
+                <span id="progressPercent">0%</span>
+              </div>
             </div>
             <div class="progress-track">
               <div id="progressBar" class="progress-fill"></div>

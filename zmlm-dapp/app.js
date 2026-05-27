@@ -22,6 +22,7 @@
     chainId: "",
     walletMintedBnb: 0,
     totalMinted: Number(config.INITIAL_TOTAL_MINTED || 0),
+    progressEnabled: localStorage.getItem("zmlm:progress-enabled") === "1",
     lastLimitAlertKey: ""
   };
 
@@ -37,6 +38,8 @@
     statusText: $("statusText"),
     totalMinted: $("totalMinted"),
     maxSupply: $("maxSupply"),
+    progressBlock: $("progressBlock"),
+    progressToggle: $("progressToggle"),
     progressPercent: $("progressPercent"),
     progressBar: $("progressBar"),
     mintPrice: $("mintPrice"),
@@ -183,11 +186,14 @@
     const totalSupply = Number(config.TOTAL_MINT_SUPPLY || 0);
     const totalMinted = Math.max(0, Number(state.totalMinted || 0));
     const percent = totalSupply > 0 ? Math.min(100, (totalMinted / totalSupply) * 100) : 0;
+    const displayPercent = state.progressEnabled ? percent : 0;
 
     els.totalMinted.textContent = formatToken(totalMinted);
     els.maxSupply.textContent = formatToken(totalSupply);
-    els.progressPercent.textContent = `${percent.toFixed(percent >= 10 ? 0 : 1)}%`;
-    els.progressBar.style.width = `${percent}%`;
+    if (els.progressToggle) els.progressToggle.checked = state.progressEnabled;
+    if (els.progressBlock) els.progressBlock.classList.toggle("progress-paused", !state.progressEnabled);
+    els.progressPercent.textContent = `${displayPercent.toFixed(displayPercent >= 10 ? 0 : 1)}%`;
+    els.progressBar.style.width = `${displayPercent}%`;
   }
 
   function updateUi() {
@@ -440,6 +446,14 @@
         }
       });
       els.mintBnbAmount.addEventListener("blur", updateUi);
+    }
+
+    if (els.progressToggle) {
+      els.progressToggle.addEventListener("change", () => {
+        state.progressEnabled = els.progressToggle.checked;
+        localStorage.setItem("zmlm:progress-enabled", state.progressEnabled ? "1" : "0");
+        updateProgress();
+      });
     }
 
     if (hasEthereum()) {
