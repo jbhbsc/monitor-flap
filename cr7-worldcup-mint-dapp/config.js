@@ -1,0 +1,26 @@
+window.CR7_MINT_CONFIG = {
+  // Deploy contracts/CR7PaidMintToken.sol and fill the address here.
+  MINT_CONTRACT_ADDRESS: "0x0318481CAF8e88d36044Fa5A01F9e60129Bc1E8d",
+
+  // The paid-mint contract is also the token contract.
+  TOKEN_CONTRACT_ADDRESS: "0x0318481CAF8e88d36044Fa5A01F9e60129Bc1E8d",
+
+  // payable mint() selector.
+  MINT_MODE: "mintFunction",
+  MINT_FUNCTION_SELECTOR: "0x1249c58b",
+
+  // Mint rule.
+  MIN_MINT_BNB: "0.01",
+  MAX_WALLET_MINT_BNB: "0.1",
+  MINT_STEP_BNB: "0.01",
+  TOKENS_PER_0_01_BNB: "100",
+  TOKEN_SYMBOL: "CR7",
+
+  TOTAL_MINT_SUPPLY: 100000,
+  MINT_PROGRESS_ENABLED: true,
+  INITIAL_TOTAL_MINTED: 0,
+
+  TOTAL_MINTED_SELECTOR: "0x8e32e316",
+  TOTAL_MINTED_DECIMALS: 18,
+  WALLET_MINTED_SELECTOR: "0x61dcde0f"
+};

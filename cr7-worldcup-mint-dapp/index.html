@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>C罗世界杯 Mint</title>
+    <link rel="icon" href="./assets/logo.svg" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <nav class="topbar" aria-label="CR7 mint navigation">
+        <a class="brand" href="./index.html" aria-label="CR7 World Cup home">
+          <span class="brand-logo">
+            <img src="./assets/logo.jpg" alt="C罗" onerror="this.src='./assets/logo.svg'" />
+          </span>
+          <span>C罗 World Cup</span>
+        </a>
+
+        <div class="contract-strip" aria-label="Token contract address">
+          <span>合约：</span>
+          <strong id="mintContractText">待配置</strong>
+        </div>
+
+        <button id="connectButton" class="wallet-button" type="button">连接钱包</button>
+      </nav>
+
+      <section class="hero" aria-labelledby="pageTitle">
+        <div class="hero-media">
+          <div class="stadium-card">
+            <img src="./assets/logo.jpg" alt="C罗世界杯 Logo" onerror="this.src='./assets/logo.svg'" />
+          </div>
+          <div class="score-strip" aria-label="Mint scoreboard">
+            <span>CR7</span>
+            <strong>7</strong>
+            <span>BSC</span>
+          </div>
+        </div>
+
+        <section class="mint-panel" aria-label="Mint panel">
+          <div class="chain-pill">
+            <span id="networkDot" class="dot"></span>
+            <span id="networkName">BSC Mainnet</span>
+          </div>
+
+          <h1 id="pageTitle">C罗世界杯 Mint</h1>
+          <p class="lead">每 mint 0.01 BNB 自动到账 100 枚代币，单钱包最多 mint 0.1 BNB。</p>
+
+          <div class="stats-grid">
+            <div class="stat primary">
+              <span>当前 Mint</span>
+              <strong id="mintPrice">0.01 BNB = 100 CR7</strong>
+            </div>
+            <div class="stat">
+              <span>钱包额度</span>
+              <strong><span id="walletMintedBnb">0</span>/<span id="maxMintBnb">0.1</span> BNB</strong>
+            </div>
+            <div class="stat">
+              <span>总进度</span>
+              <strong><span id="totalMinted">0</span>/<span id="maxSupply">100,000</span></strong>
+            </div>
+          </div>
+
+          <label class="amount-panel" for="mintBnbAmount">
+            <span>输入 Mint BNB</span>
+            <div class="amount-control">
+              <input id="mintBnbAmount" type="text" value="0.01" inputmode="decimal" autocomplete="off" />
+              <strong>BNB</strong>
+            </div>
+          </label>
+
+          <div id="progressBlock" class="progress-block" aria-label="Mint progress">
+            <div class="progress-head">
+              <span>Mint Progress</span>
+              <strong id="progressPercent">0%</strong>
+            </div>
+            <div class="progress-track">
+              <div id="progressBar" class="progress-fill"></div>
+            </div>
+          </div>
+
+          <button id="mintButton" class="mint-button" type="button" disabled>Mint</button>
+          <p id="statusText" class="status-text" role="status">请先在 config.js 填入 MINT_CONTRACT_ADDRESS。</p>
+        </section>
+      </section>
+
+      <section class="info-band" aria-label="Mint details">
+        <div>
+          <span>世界杯主题</span>
+          <strong>C罗 · 7号 · BSC</strong>
+        </div>
+        <div>
+          <span>代币合约</span>
+          <strong id="tokenContractText">待配置</strong>
+        </div>
+        <div>
+          <span>领取方式</span>
+          <strong>钱包确认后自动到账</strong>
+        </div>
+      </section>
+    </main>
+
+    <script src="./config.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

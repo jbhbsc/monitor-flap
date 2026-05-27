@@ -1,0 +1,9 @@
+{
+  "name": "cr7-worldcup-mint-dapp",
+  "private": true,
+  "version": "1.0.0",
+  "description": "World Cup styled CR7 BSC mint dapp",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
