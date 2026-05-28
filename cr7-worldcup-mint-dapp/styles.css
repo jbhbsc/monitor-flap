@@ -68,7 +68,7 @@ input {
 
 .topbar {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) auto auto;
+  grid-template-columns: minmax(220px, 1fr) auto auto auto;
   gap: 14px;
   align-items: center;
   padding: 12px;
@@ -121,6 +121,40 @@ input {
 
 .contract-strip strong {
   color: var(--gold);
+}
+
+.social-links {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.social-link {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  color: #fff;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 1000;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
+  transition: transform 160ms ease, filter 160ms ease;
+}
+
+.social-link:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+
+.social-link.telegram {
+  background: linear-gradient(135deg, #35b8ff, #168bd8);
+}
+
+.social-link.x {
+  background: #050505;
 }
 
 .wallet-button,
