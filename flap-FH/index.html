@@ -452,7 +452,7 @@
                 data = null;
             }
             if (!data) {
-                showToast('后台接口没有返回数据，请用 npm.cmd start 启动后访问 http://localhost:4208');
+                showToast('后台接口没有返回数据，请确认 Vercel 已部署 API，或本地用 npm.cmd start 打开。');
                 return;
             }
             if (!response.ok || !data.ok) {
