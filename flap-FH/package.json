@@ -1,0 +1,9 @@
+{
+  "name": "flap-fh",
+  "private": true,
+  "version": "1.0.0",
+  "description": "FLAP tweet submission and admin review page",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

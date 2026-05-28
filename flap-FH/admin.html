@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FLAP-FH 管理后台</title>
+    <style>
+      :root {
+        --bg: #07110d;
+        --panel: rgba(13, 27, 22, 0.88);
+        --line: rgba(255, 215, 88, 0.22);
+        --gold: #f4bd45;
+        --green: #2f9b62;
+        --text: #fff6db;
+        --muted: #a9baa9;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--text);
+        font-family: Inter, "Microsoft YaHei", Arial, sans-serif;
+        background:
+          radial-gradient(circle at 20% 0%, rgba(244, 189, 69, 0.16), transparent 28%),
+          radial-gradient(circle at 84% 18%, rgba(47, 155, 98, 0.16), transparent 30%),
+          var(--bg);
+      }
+      main {
+        width: min(1180px, calc(100% - 28px));
+        margin: 0 auto;
+        padding: 28px 0;
+      }
+      .topbar,
+      .login,
+      .table-wrap {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.32);
+      }
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        align-items: center;
+        padding: 18px;
+      }
+      h1 {
+        margin: 0;
+        font-size: clamp(26px, 4vw, 42px);
+      }
+      .topbar span,
+      .login p {
+        color: var(--muted);
+      }
+      .login {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-top: 16px;
+        padding: 16px;
+        flex-wrap: wrap;
+      }
+      input {
+        min-height: 44px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 8px;
+        padding: 0 12px;
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.08);
+        outline: none;
+      }
+      button {
+        min-height: 44px;
+        border: 0;
+        border-radius: 8px;
+        padding: 0 14px;
+        color: #07110d;
+        background: linear-gradient(135deg, #ffd86a, #f4a22d);
+        font-weight: 900;
+        cursor: pointer;
+      }
+      .table-wrap {
+        margin-top: 16px;
+        overflow: hidden;
+      }
+      .summary {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--line);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 14px 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        text-align: left;
+        vertical-align: top;
+        font-size: 14px;
+      }
+      th {
+        color: var(--gold);
+        background: rgba(255, 255, 255, 0.04);
+      }
+      td {
+        color: #f6f0dd;
+      }
+      a {
+        color: #75c8ff;
+        word-break: break-all;
+      }
+      code {
+        color: #a8f0be;
+        word-break: break-all;
+      }
+      .copy-row {
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+      }
+      .copy-row button {
+        min-height: 32px;
+        padding: 0 10px;
+        white-space: nowrap;
+      }
+      .empty {
+        padding: 24px;
+        color: var(--muted);
+        text-align: center;
+      }
+      @media (max-width: 760px) {
+        table,
+        thead,
+        tbody,
+        tr,
+        th,
+        td {
+          display: block;
+        }
+        thead {
+          display: none;
+        }
+        tr {
+          border-bottom: 1px solid var(--line);
+          padding: 10px 0;
+        }
+        td {
+          border-bottom: 0;
+        }
+        td::before {
+          content: attr(data-label);
+          display: block;
+          margin-bottom: 6px;
+          color: var(--gold);
+          font-weight: 900;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="topbar">
+        <div>
+          <h1>FLAP-FH 管理后台</h1>
+          <span>查看用户提交的推文链接和钱包地址</span>
+        </div>
+        <a href="./index.html" style="color: var(--gold); font-weight: 900;">返回活动页</a>
+      </section>
+
+      <section class="login">
+        <input id="passwordInput" type="password" placeholder="管理员密码" />
+        <button id="loadButton" type="button">查看记录</button>
+        <button id="refreshButton" type="button">刷新</button>
+        <p id="statusText">默认本地密码：147258，可用 ADMIN_PASSWORD 环境变量修改。</p>
+      </section>
+
+      <section class="table-wrap">
+        <div class="summary">
+          <strong>提交记录</strong>
+          <span id="countText">0 条</span>
+        </div>
+        <div id="tableHost" class="empty">输入管理员密码后查看。</div>
+      </section>
+    </main>
+
+    <script>
+      const passwordInput = document.getElementById("passwordInput");
+      const loadButton = document.getElementById("loadButton");
+      const refreshButton = document.getElementById("refreshButton");
+      const statusText = document.getElementById("statusText");
+      const tableHost = document.getElementById("tableHost");
+      const countText = document.getElementById("countText");
+
+      async function copyText(text) {
+        await navigator.clipboard.writeText(text);
+        statusText.textContent = "已复制。";
+      }
+
+      function render(records) {
+        countText.textContent = `${records.length} 条`;
+        if (!records.length) {
+          tableHost.className = "empty";
+          tableHost.textContent = "暂无提交记录。";
+          return;
+        }
+
+        tableHost.className = "";
+        tableHost.innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>时间</th>
+                <th>钱包地址</th>
+                <th>推文链接</th>
+                <th>IP</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${records.map((record) => `
+                <tr>
+                  <td data-label="时间">${new Date(record.createdAt).toLocaleString("zh-CN")}</td>
+                  <td data-label="钱包地址">
+                    <div class="copy-row">
+                      <code>${record.walletAddress}</code>
+                      <button type="button" data-copy="${record.walletAddress}">复制</button>
+                    </div>
+                  </td>
+                  <td data-label="推文链接">
+                    <div class="copy-row">
+                      <a href="${record.tweetLink}" target="_blank" rel="noreferrer">${record.tweetLink}</a>
+                      <button type="button" data-copy="${record.tweetLink}">复制</button>
+                    </div>
+                  </td>
+                  <td data-label="IP">${record.ip || "-"}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        `;
+
+        tableHost.querySelectorAll("[data-copy]").forEach((button) => {
+          button.addEventListener("click", () => copyText(button.dataset.copy));
+        });
+      }
+
+      async function loadRecords() {
+        const password = passwordInput.value.trim();
+        if (!password) {
+          statusText.textContent = "请先输入管理员密码。";
+          return;
+        }
+
+        statusText.textContent = "正在加载...";
+        const response = await fetch("/api/admin/submissions", {
+          headers: { "x-admin-password": password }
+        });
+        const data = await response.json();
+        if (!response.ok || !data.ok) {
+          statusText.textContent = data.message || "加载失败。";
+          return;
+        }
+        statusText.textContent = "记录已更新。";
+        render(data.records);
+      }
+
+      loadButton.addEventListener("click", loadRecords);
+      refreshButton.addEventListener("click", loadRecords);
+      passwordInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") loadRecords();
+      });
+    </script>
+  </body>
+</html>
