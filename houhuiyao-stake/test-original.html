@@ -1,0 +1,787 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>后悔药 · RevokeX | 链上交易保护协议</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Inter, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Microsoft YaHei", sans-serif;
+            background: radial-gradient(circle at 10% 20%, #0a0f1e, #03050b);
+            color: #f1f5f9;
+            line-height: 1.4;
+            overflow-x: hidden;
+        }
+
+        .ambient {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .orb-1 {
+            position: absolute;
+            top: -15%;
+            left: -10%;
+            width: 70%;
+            height: 70%;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.25), transparent 70%);
+            filter: blur(90px);
+            animation: float 20s infinite alternate;
+        }
+
+        .orb-2 {
+            position: absolute;
+            right: -5%;
+            bottom: -10%;
+            width: 60%;
+            height: 60%;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.2), transparent 70%);
+            filter: blur(100px);
+            animation: float 18s infinite alternate-reverse;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(5%, 5%) scale(1.1); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 2;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.2rem 2rem 4rem;
+        }
+
+        .navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 80px;
+            backdrop-filter: blur(12px);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1.7rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #e9d5ff, #a78bfa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .logo span {
+            font-size: 2rem;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .social-link,
+        .connect-btn,
+        .wallet-badge {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid #8b5cf680;
+            color: #e2e8f0;
+        }
+
+        .social-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            transition: 0.2s;
+        }
+
+        .social-link svg {
+            display: block;
+            width: 21px;
+            height: 21px;
+        }
+
+        .connect-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 42px;
+            border-radius: 60px;
+            padding: 0.65rem 1.6rem;
+            font: inherit;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .connect-btn:hover,
+        .social-link:hover {
+            background: #8b5cf6cc;
+            border-color: #c084fc;
+            transform: translateY(-1px);
+            box-shadow: 0 0 12px rgba(139, 92, 246, 0.5);
+        }
+
+        .wallet-badge {
+            display: none;
+            align-items: center;
+            min-height: 42px;
+            border-radius: 60px;
+            padding: 0.65rem 1.5rem;
+            font-family: Consolas, monospace;
+            font-size: 0.85rem;
+        }
+
+        .hero {
+            text-align: center;
+            margin: 2rem 0 2.2rem;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.3rem, 7vw, 3.8rem);
+            font-weight: 800;
+            background: linear-gradient(145deg, #fff, #c084fc, #60a5fa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: 0;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .hero .sub {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1.5rem;
+            border-radius: 60px;
+            background: rgba(0, 0, 0, 0.4);
+            color: #9ca3af;
+            font-size: 1.05rem;
+            backdrop-filter: blur(4px);
+        }
+
+        .stake-panel {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1.2rem;
+            margin: 1.5rem 0 2.5rem;
+        }
+
+        .stake-card,
+        .reserve-card,
+        .feature-card,
+        .howto,
+        .cta-glow {
+            background: rgba(12, 20, 35, 0.72);
+            border: 1px solid rgba(139, 92, 246, 0.38);
+            backdrop-filter: blur(16px);
+            box-shadow: 0 20px 35px -15px rgba(0, 0, 0, 0.5);
+        }
+
+        .stake-card {
+            min-width: 0;
+            border-radius: 1.5rem;
+            padding: 1.35rem;
+        }
+
+        .stake-card h3 {
+            margin-bottom: 0.85rem;
+            color: #e9d5ff;
+            font-size: 1.05rem;
+        }
+
+        .stake-value {
+            font-size: 1.35rem;
+            font-weight: 800;
+            word-break: break-all;
+        }
+
+        .stake-muted {
+            margin-top: 0.55rem;
+            color: #94a3b8;
+            font-size: 0.82rem;
+            line-height: 1.45;
+        }
+
+        .stake-button {
+            width: 100%;
+            margin-top: 0.95rem;
+            border: 0;
+            border-radius: 60px;
+            padding: 0.9rem 1.2rem;
+            background: linear-gradient(135deg, #a78bfa, #38bdf8);
+            color: #080b14;
+            font: inherit;
+            font-weight: 900;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .stake-button:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.05);
+        }
+
+        .stake-button:disabled {
+            cursor: not-allowed;
+            filter: grayscale(0.8) opacity(0.58);
+            transform: none;
+        }
+
+        .stake-status.good { color: #34d399; }
+        .stake-status.warn { color: #fbbf24; }
+        .stake-status.error { color: #fb7185; }
+
+        .reserve-section {
+            margin: 3rem 0 2rem;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .reserve-grid,
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .reserve-card {
+            border-radius: 2rem;
+            padding: 1.8rem;
+            transition: 0.3s;
+        }
+
+        .reserve-card:hover {
+            border-color: #c084fc;
+            transform: translateY(-6px);
+            box-shadow: 0 25px 40px -12px #8b5cf630;
+        }
+
+        .card-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .badge-static,
+        .badge-dynamic {
+            border-radius: 40px;
+            padding: 0.2rem 0.8rem;
+            font-size: 0.7rem;
+            white-space: nowrap;
+        }
+
+        .badge-static {
+            background: #2dd4bf20;
+            border: 1px solid #2dd4bf60;
+            color: #2dd4bf;
+        }
+
+        .badge-dynamic {
+            background: #f59e0b20;
+            border: 1px solid #f59e0b60;
+            color: #fbbf24;
+        }
+
+        .amount-bnb {
+            margin: 0.5rem 0;
+            font-size: 3rem;
+            font-weight: 800;
+            letter-spacing: 0;
+        }
+
+        .amount-bnb small {
+            color: #94a3b8;
+            font-size: 1rem;
+            font-weight: 400;
+        }
+
+        .reserve-desc {
+            margin-top: 0.8rem;
+            border-top: 1px dashed #334155;
+            padding-top: 0.8rem;
+            color: #9ca3af;
+            font-size: 0.85rem;
+        }
+
+        .progress-ring {
+            width: 100%;
+            height: 8px;
+            margin: 1rem 0 0.5rem;
+            border-radius: 10px;
+            background: #1e293b;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #a855f7, #3b82f6);
+        }
+
+        .features-grid {
+            margin: 3rem 0;
+            gap: 1.8rem;
+        }
+
+        .feature-card {
+            border-color: #334155;
+            border-radius: 1.8rem;
+            padding: 1.5rem;
+        }
+
+        .feature-card p {
+            color: #cbd5e1;
+        }
+
+        .howto {
+            margin: 2rem 0;
+            border-radius: 2rem;
+            padding: 2rem;
+        }
+
+        .steps {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1.2rem;
+            margin-top: 1.5rem;
+        }
+
+        .step {
+            flex: 1 1 220px;
+            border-radius: 1.5rem;
+            background: #0f172a;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .step span {
+            display: inline-block;
+            width: 28px;
+            border-radius: 40px;
+            background: #8b5cf6;
+        }
+
+        .cta-glow {
+            margin-top: 3rem;
+            border-color: #8b5cf6;
+            border-radius: 2.5rem;
+            padding: 2rem;
+            text-align: center;
+            background: linear-gradient(125deg, #1e1b4b, #0f172a);
+        }
+
+        .btn-primary {
+            margin-top: 0.8rem;
+            border: 0;
+            border-radius: 60px;
+            padding: 1rem 2.5rem;
+            background: #8b5cf6;
+            color: #fff;
+            font: inherit;
+            font-size: 1.1rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 8px 20px #8b5cf670;
+        }
+
+        footer {
+            margin-top: 4rem;
+            border-top: 1px solid #1f2937;
+            padding-top: 2rem;
+            color: #64748b;
+            text-align: center;
+            font-size: 0.75rem;
+        }
+
+        .flash {
+            animation: pulse 0.4s ease;
+        }
+
+        @keyframes pulse {
+            0% { text-shadow: 0 0 0 #fbbf24; opacity: 1; }
+            100% { text-shadow: 0 0 8px #fbbf24; }
+        }
+
+        @media (max-width: 760px) {
+            .container { padding: 1rem; }
+            .navbar { border-radius: 1.5rem; }
+            .nav-actions { justify-content: flex-start; }
+            .stake-panel { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 2.3rem; }
+            .amount-bnb { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="ambient">
+    <div class="orb-1"></div>
+    <div class="orb-2"></div>
+</div>
+
+<div class="container">
+    <div class="navbar">
+        <div class="logo">
+            <span>💊</span> RevokeX · 后悔药
+        </div>
+        <div class="nav-actions">
+            <a class="social-link" href="https://t.me/houhuiyao88" target="_blank" rel="noreferrer" title="Telegram" aria-label="Telegram">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#29a9ea" d="M21.7 4.1 18.4 20c-.2 1.1-.9 1.4-1.8.9l-5-3.7-2.4 2.3c-.3.3-.5.5-1 .5l.4-5.1 9.3-8.4c.4-.4-.1-.6-.6-.2L5.8 13.5.9 12c-1.1-.3-1.1-1.1.2-1.6L20.2 3c.9-.3 1.7.2 1.5 1.1Z"/></svg>
+            </a>
+            <a class="social-link" href="https://x.com/mozjmsgclr7802?s=21" target="_blank" rel="noreferrer" title="X" aria-label="X">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#f8fafc" d="M18.9 2h3.2l-7 8 8.2 12h-6.4l-5-7.4L6.2 22H3l7.5-8.6L2.6 2h6.6l4.5 6.6L18.9 2Zm-1.1 17.9h1.8L8.2 4H6.3l11.5 15.9Z"/></svg>
+            </a>
+            <button id="connectWalletBtn" class="connect-btn">🔌 连接 BSC 钱包</button>
+            <div id="walletStatus" class="wallet-badge"></div>
+        </div>
+    </div>
+
+    <div class="hero">
+        <h1>冲动交易？<br class="hide-mob">24小时后悔权</h1>
+        <div class="sub">⚡ 首个链上「反悔协议」 | 每笔 Swap 都拥有一次重来机会</div>
+    </div>
+
+    <div class="stake-panel" id="stakePanel">
+        <div class="stake-card">
+            <h3>📜 代币合约</h3>
+            <div class="stake-value" id="tokenContractView">0x72ff71510a9c85ad9fd0c0a341fc647818d07777</div>
+            <div class="stake-muted">$后悔药余额会在连接钱包后自动读取。</div>
+        </div>
+        <div class="stake-card">
+            <h3>💰 我的余额</h3>
+            <div class="stake-value" id="tokenBalanceView">未连接</div>
+            <div class="stake-muted" id="stakeOwnedView">后悔药状态：未获得</div>
+        </div>
+        <div class="stake-card">
+            <h3>💊 质押后悔药</h3>
+            <div class="stake-value">1,000,000 枚</div>
+            <button id="stakeTokenBtn" class="stake-button" type="button" disabled>质押 100万 枚 $后悔药</button>
+            <div class="stake-muted stake-status warn" id="stakeStatusView">请先连接钱包。</div>
+        </div>
+    </div>
+
+    <div class="reserve-section">
+        <div class="section-title">🏦 保险储备池 - 永不枯竭的保障</div>
+        <div class="reserve-grid">
+            <div class="reserve-card">
+                <div class="card-label">
+                    <span>🏛️ 静态储备池</span>
+                    <span class="badge-static">项目方锁定</span>
+                </div>
+                <div class="amount-bnb">20.00 <small>BNB</small></div>
+                <div class="progress-ring"><div class="progress-fill" style="width: 100%;"></div></div>
+                <div class="reserve-desc">
+                    🔒 初始注入 20 BNB，永久作为协议保底资金，仅用于补贴用户撤销亏损。
+                </div>
+            </div>
+            <div class="reserve-card" id="dynamicReserveCard">
+                <div class="card-label">
+                    <span>📈 动态税点储备池</span>
+                    <span class="badge-dynamic">协议收入 · 实时累积</span>
+                </div>
+                <div class="amount-bnb" id="dynamicReserveValue">8.42 <small>BNB</small></div>
+                <div class="progress-ring"><div class="progress-fill" id="dynamicFill" style="width: 42%;"></div></div>
+                <div class="reserve-desc">
+                    💧 每笔后悔费的 40% 自动注入本池，随协议使用量增长。
+                </div>
+            </div>
+        </div>
+        <div style="text-align: center; margin-top: 0.8rem; font-size: 0.75rem; background: #00000030; border-radius: 50px; padding: 0.3rem;">
+            ⚡ 当前总保障 = 静态储备 + 动态税点池，用于覆盖用户反悔亏损
+        </div>
+    </div>
+
+    <div class="features-grid">
+        <div class="feature-card">
+            <div style="font-size: 2rem;">⏳</div>
+            <h3 style="margin: 0.5rem 0;">24小时反悔窗</h3>
+            <p>通过后悔药入口交易，24小时内均可撤销，原路拿回资产。</p>
+        </div>
+        <div class="feature-card">
+            <div style="font-size: 2rem;">💰</div>
+            <h3 style="margin: 0.5rem 0;">亏损从哪补？</h3>
+            <p>静态池和动态税点池联合补贴。撤销时用户仅支付小额固定费，剩余差价由双储备包赔。</p>
+        </div>
+        <div class="feature-card">
+            <div style="font-size: 2rem;">🧬</div>
+            <h3 style="margin: 0.5rem 0;">质押 $后悔药 获凭证</h3>
+            <p>单地址质押 100 万枚 $后悔药，即可在页面显示拥有 1 枚后悔药。</p>
+        </div>
+    </div>
+
+    <div class="howto">
+        <h2 style="font-size: 1.6rem;">📉 如何“吃后悔药”？</h2>
+        <div class="steps">
+            <div class="step"><span>1</span><br>🔗 连接钱包并交易</div>
+            <div class="step"><span>2</span><br>💊 点击“后悔”按钮</div>
+            <div class="step"><span>3</span><br>🔄 智能合约自动反向兑换并补差</div>
+        </div>
+        <p style="text-align: center; margin-top: 1rem; color: #a5b4fc;">✅ 每个地址每 2 小时限用一次，动态滑点保护，安全抗 MEV</p>
+    </div>
+
+    <div class="cta-glow" id="ctaBlock">
+        <h2>🚀 已上线 FLAP 平台</h2>
+        <p>连接钱包，进入后悔药使用入口</p>
+        <button id="mainCtaBtn" class="btn-primary">💊 使用后悔药</button>
+        <p style="margin-top: 1rem; font-size: 0.75rem;">支持 MetaMask, TrustWallet, OKX Wallet | BSC Mainnet</p>
+        <div id="demoSimulate" style="margin-top: 12px; font-size: 12px;"></div>
+    </div>
+
+    <footer>
+        © 2025 后悔药协议 - 让每一次交易都有退路 | 合约审计中 | 储备池数据链上实时
+    </footer>
+</div>
+
+<script>
+    let provider = null;
+    let signer = null;
+    let userAddress = null;
+    let tokenContract = null;
+    let tokenDecimals = 18;
+    let tokenSymbol = "后悔药";
+    let tokenBalance = ethers.BigNumber.from(0);
+    let dynamicReserveBNB = 8.42;
+    let intervalSim = null;
+
+    const BSC_CHAIN_ID = "0x38";
+    const TOKEN_ADDRESS = "0x72ff71510a9c85ad9fd0c0a341fc647818d07777";
+    const STAKE_RECEIVER_ADDRESS = "0xd2449a45F534abD97f37ed9Fef60f4Dff61eD534";
+    const STAKE_AMOUNT_TEXT = "1000000";
+    const ERC20_ABI = [
+        "function decimals() view returns (uint8)",
+        "function symbol() view returns (string)",
+        "function balanceOf(address account) view returns (uint256)",
+        "function transfer(address to, uint256 amount) returns (bool)"
+    ];
+
+    const dynamicReserveSpan = document.getElementById("dynamicReserveValue");
+    const dynamicFillBar = document.getElementById("dynamicFill");
+
+    function shortAddress(address) {
+        return address ? address.slice(0, 6) + "..." + address.slice(-4) : "-";
+    }
+
+    function stakeKey() {
+        return userAddress ? "houhuiyao_staked_" + TOKEN_ADDRESS.toLowerCase() + "_" + userAddress.toLowerCase() : "";
+    }
+
+    function hasStaked() {
+        const key = stakeKey();
+        return Boolean(key && localStorage.getItem(key) === "1");
+    }
+
+    function formatTokenAmount(value) {
+        const raw = ethers.utils.formatUnits(value, tokenDecimals);
+        const parts = raw.split(".");
+        const whole = Number(parts[0] || "0").toLocaleString();
+        const fraction = (parts[1] || "").slice(0, 4).replace(/0+$/, "");
+        return fraction ? whole + "." + fraction : whole;
+    }
+
+    function setStakeStatus(text, type = "warn") {
+        const el = document.getElementById("stakeStatusView");
+        el.textContent = text;
+        el.className = "stake-muted stake-status " + type;
+    }
+
+    function renderStakeUI() {
+        document.getElementById("tokenContractView").textContent = TOKEN_ADDRESS;
+        document.getElementById("tokenBalanceView").textContent = userAddress ? formatTokenAmount(tokenBalance) + " " + tokenSymbol : "未连接";
+        document.getElementById("stakeOwnedView").textContent = hasStaked() ? "后悔药状态：拥有 1 枚后悔药" : "后悔药状态：未获得";
+
+        const required = ethers.utils.parseUnits(STAKE_AMOUNT_TEXT, tokenDecimals);
+        const canStake = Boolean(userAddress) && !hasStaked() && tokenBalance.gte(required);
+        document.getElementById("stakeTokenBtn").disabled = !canStake;
+
+        if (!userAddress) setStakeStatus("请先连接钱包。", "warn");
+        else if (hasStaked()) setStakeStatus("当前钱包已拥有 1 枚后悔药。", "good");
+        else if (!tokenBalance.gte(required)) setStakeStatus("余额不足，需要 1,000,000 枚 " + tokenSymbol + "。", "error");
+        else setStakeStatus("可以质押，点击按钮会转出 1,000,000 枚。", "good");
+    }
+
+    function updateDynamicUI() {
+        dynamicReserveSpan.innerHTML = dynamicReserveBNB.toFixed(4) + " <small>BNB</small>";
+        dynamicFillBar.style.width = Math.min(100, (dynamicReserveBNB / 50) * 100) + "%";
+    }
+
+    function simulateTaxIncome(amountBNB = 0.05) {
+        dynamicReserveBNB += amountBNB;
+        updateDynamicUI();
+        const card = document.getElementById("dynamicReserveCard");
+        const toastMsg = document.getElementById("demoSimulate");
+        card.classList.add("flash");
+        setTimeout(() => card.classList.remove("flash"), 500);
+        toastMsg.textContent = "✅ 模拟：协议收入 +" + amountBNB.toFixed(4) + " BNB";
+        setTimeout(() => { toastMsg.textContent = ""; }, 3000);
+    }
+
+    function startMockTaxAccumulation() {
+        if (intervalSim) clearInterval(intervalSim);
+        intervalSim = setInterval(() => {
+            dynamicReserveBNB += Math.random() * 0.01;
+            updateDynamicUI();
+        }, 45000);
+    }
+
+    async function switchToBSC() {
+        if (!window.ethereum) {
+            alert("请安装 MetaMask、OKX Wallet 或支持的钱包。");
+            return false;
+        }
+        try {
+            await window.ethereum.request({
+                method: "wallet_switchEthereumChain",
+                params: [{ chainId: BSC_CHAIN_ID }]
+            });
+            return true;
+        } catch (err) {
+            if (err.code === 4902) {
+                await window.ethereum.request({
+                    method: "wallet_addEthereumChain",
+                    params: [{
+                        chainId: BSC_CHAIN_ID,
+                        chainName: "BNB Smart Chain",
+                        nativeCurrency: { name: "BNB", symbol: "BNB", decimals: 18 },
+                        rpcUrls: ["https://bsc-dataseed.binance.org/"],
+                        blockExplorerUrls: ["https://bscscan.com/"]
+                    }]
+                });
+                return true;
+            }
+            alert("请手动切换至 BNB Smart Chain。");
+            return false;
+        }
+    }
+
+    async function refreshTokenBalance() {
+        if (!tokenContract || !userAddress) {
+            renderStakeUI();
+            return;
+        }
+        tokenBalance = await tokenContract.balanceOf(userAddress);
+        renderStakeUI();
+    }
+
+    async function connectWallet() {
+        if (!window.ethereum) {
+            alert("未安装钱包插件。");
+            return false;
+        }
+        try {
+            const isBSC = await switchToBSC();
+            if (!isBSC) return false;
+            const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+            if (!accounts.length) throw new Error("无授权账户");
+
+            provider = new ethers.providers.Web3Provider(window.ethereum);
+            signer = provider.getSigner();
+            userAddress = accounts[0];
+            tokenContract = new ethers.Contract(TOKEN_ADDRESS, ERC20_ABI, signer);
+
+            try {
+                tokenDecimals = await tokenContract.decimals();
+                tokenSymbol = await tokenContract.symbol();
+            } catch (error) {
+                tokenDecimals = 18;
+                tokenSymbol = "后悔药";
+            }
+
+            const shortAddr = shortAddress(userAddress);
+            document.getElementById("connectWalletBtn").style.display = "none";
+            const walletDiv = document.getElementById("walletStatus");
+            walletDiv.style.display = "flex";
+            walletDiv.textContent = "🟢 " + shortAddr;
+            document.getElementById("mainCtaBtn").textContent = "💊 使用后悔药";
+
+            await refreshTokenBalance();
+            startMockTaxAccumulation();
+            return true;
+        } catch (error) {
+            console.error(error);
+            alert("连接失败：" + (error.message || error));
+            return false;
+        }
+    }
+
+    async function stakeToken() {
+        if (!userAddress) {
+            await connectWallet();
+            return;
+        }
+        if (hasStaked()) {
+            renderStakeUI();
+            return;
+        }
+        try {
+            const amount = ethers.utils.parseUnits(STAKE_AMOUNT_TEXT, tokenDecimals);
+            setStakeStatus("等待钱包确认转账...", "warn");
+            document.getElementById("stakeTokenBtn").disabled = true;
+            const tx = await tokenContract.transfer(STAKE_RECEIVER_ADDRESS, amount);
+            setStakeStatus("交易已提交：" + tx.hash, "warn");
+            await tx.wait();
+            localStorage.setItem(stakeKey(), "1");
+            setStakeStatus("质押成功，已获得 1 枚后悔药。", "good");
+            await refreshTokenBalance();
+        } catch (error) {
+            console.error(error);
+            setStakeStatus(error.data?.message || error.message || "质押失败。", "error");
+            renderStakeUI();
+        }
+    }
+
+    document.getElementById("connectWalletBtn").addEventListener("click", connectWallet);
+    document.getElementById("stakeTokenBtn").addEventListener("click", stakeToken);
+    document.getElementById("mainCtaBtn").addEventListener("click", async () => {
+        if (!userAddress) await connectWallet();
+        else simulateTaxIncome(0.125);
+    });
+
+    window.addEventListener("load", async () => {
+        updateDynamicUI();
+        renderStakeUI();
+        if (window.ethereum) {
+            window.ethereum.on("accountsChanged", () => window.location.reload());
+            window.ethereum.on("chainChanged", () => window.location.reload());
+            const accounts = await window.ethereum.request({ method: "eth_accounts" }).catch(() => []);
+            if (accounts.length) await connectWallet();
+        }
+    });
+</script>
+</body>
+</html>
