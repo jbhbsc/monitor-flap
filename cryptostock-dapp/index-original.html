@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>加密股 · 特斯拉凭证发射台 | 子币质押协议</title>
+    <!-- Google Fonts & Font Awesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- ethers.js for BSC钱包连接 -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at 20% 30%, #0a0f1e, #03050b);
+            color: #eef5ff;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 加密科技网格背景 */
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* 股票浮动线条 */
+        .stock-wave {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 120px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 120"><path fill="none" stroke="rgba(0,255,200,0.15)" stroke-width="2" d="M0,64L48,58.7C96,53,192,43,288,48C384,53,480,75,576,80C672,85,768,75,864,69.3C960,64,1056,64,1152,58.7C1248,53,1344,43,1392,37.3L1440,32L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z"/></svg>') repeat-x bottom;
+            background-size: 300px 80px;
+            opacity: 0.5;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 2;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem 3rem;
+        }
+
+        /* 玻璃拟态头部 */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 2.5rem;
+            background: rgba(10, 20, 30, 0.55);
+            backdrop-filter: blur(12px);
+            border-radius: 2rem;
+            padding: 0.8rem 2rem;
+            border: 1px solid rgba(0, 255, 200, 0.25);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #F0B90B, #00e0ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.5px;
+        }
+        .badge {
+            background: rgba(0,255,200,0.2);
+            border-radius: 40px;
+            padding: 0.2rem 0.8rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            border: 1px solid #0affc0;
+            color: #0affc0;
+        }
+        .sub-stock {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            color: #b9f3ff;
+        }
+
+        .connect-wallet {
+            background: linear-gradient(95deg, #0f212e, #07141e);
+            border: 1px solid #2affc0;
+            border-radius: 3rem;
+            padding: 0.6rem 1.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 0 6px rgba(42,255,192,0.3);
+        }
+        .connect-wallet:hover {
+            background: #1c3f3a;
+            border-color: #ffd966;
+            transform: scale(1.02);
+            box-shadow: 0 0 12px #ffdf8c;
+        }
+        .wallet-address {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+        }
+
+        /* 主卡片网格 */
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 2rem;
+        }
+        @media (max-width: 900px) {
+            .grid-2col { grid-template-columns: 1fr; }
+            .container { padding: 1rem; }
+        }
+
+        .card {
+            background: rgba(8, 18, 28, 0.7);
+            backdrop-filter: blur(12px);
+            border-radius: 2rem;
+            border: 1px solid rgba(0, 255, 200, 0.35);
+            padding: 1.6rem 1.8rem;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.5);
+            transition: all 0.2s;
+        }
+
+        .glow-card {
+            background: linear-gradient(125deg, rgba(0,40,50,0.6), rgba(0,15,25,0.8));
+            border-top: 2px solid #00e0ff;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-left: 4px solid #0affc0;
+            padding-left: 1rem;
+        }
+
+        .token-badge {
+            background: #0f212e;
+            border-radius: 2rem;
+            padding: 0.3rem 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .current-stock {
+            background: linear-gradient(120deg, #2c2a3e, #111725);
+            border-radius: 2rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            text-align: center;
+            border: 1px solid #ffcf4a;
+        }
+        .stock-name {
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #FFDF7E, #FFA63F);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .stock-ticker {
+            font-family: 'Space Mono', monospace;
+            font-size: 1rem;
+            color: #a0f0ff;
+        }
+
+        .input-group {
+            background: #0e1a24;
+            border-radius: 1.5rem;
+            padding: 0.3rem 1rem;
+            display: flex;
+            align-items: center;
+            margin: 1.2rem 0;
+            border: 1px solid #2f5b6e;
+        }
+        .input-group input {
+            background: transparent;
+            border: none;
+            padding: 1rem 0.5rem;
+            width: 100%;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            outline: none;
+        }
+        .input-group span {
+            color: #7fcdff;
+            font-weight: 600;
+        }
+        button {
+            background: linear-gradient(95deg, #09b58f, #048a6f);
+            border: none;
+            border-radius: 3rem;
+            padding: 0.9rem 1.8rem;
+            font-weight: 700;
+            font-size: 1rem;
+            width: 100%;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+        }
+        button:hover {
+            filter: brightness(1.08);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 18px rgba(0,200,150,0.3);
+        }
+
+        .stats-grid {
+            display: flex;
+            justify-content: space-between;
+            margin: 1.2rem 0;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .stat-box {
+            background: #07161f;
+            border-radius: 1.5rem;
+            padding: 0.8rem;
+            flex: 1;
+            text-align: center;
+            border: 1px solid #278b6f;
+        }
+
+        .voucher-list {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+        .voucher-item {
+            background: radial-gradient(ellipse at 30% 20%, #1b4e44, #06222b);
+            border-radius: 1.2rem;
+            padding: 0.5rem 1rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid gold;
+        }
+        .voucher-icon {
+            font-size: 1.4rem;
+        }
+
+        .timeline {
+            display: flex;
+            justify-content: space-between;
+            margin: 1.2rem 0;
+            background: #05101680;
+            border-radius: 2rem;
+            padding: 0.8rem;
+        }
+        .timeline-step {
+            text-align: center;
+            flex: 1;
+            font-size: 0.8rem;
+            font-weight: 600;
+            opacity: 0.6;
+        }
+        .timeline-step.active {
+            opacity: 1;
+            color: #ffd966;
+            text-shadow: 0 0 6px #ffb347;
+        }
+
+        .admin-btn {
+            background: #2a3342;
+            border: 1px solid #6c8b9e;
+            margin-top: 1rem;
+            box-shadow: none;
+        }
+
+        /* 后台地址表格 */
+        .address-table {
+            margin-top: 1rem;
+            max-height: 240px;
+            overflow-y: auto;
+            font-size: 0.75rem;
+            background: #031016aa;
+            border-radius: 1rem;
+            padding: 0.5rem;
+        }
+        .address-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem;
+            border-bottom: 1px solid #2f676b;
+            font-family: monospace;
+        }
+
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a1a1f;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1fbba5;
+            border-radius: 20px;
+        }
+
+        .flash {
+            animation: pulse 0.6s ease;
+        }
+        @keyframes pulse {
+            0% { background: rgba(0,255,200,0.3);}
+            100% { background: transparent; }
+        }
+        .info-note {
+            font-size: 0.7rem;
+            color: #8aaec0;
+            text-align: center;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="stock-wave"></div>
+<div class="container">
+    <!-- 头部 右上角钱包 -->
+    <div class="navbar">
+        <div class="logo-area">
+            <div class="logo">⚡加密股<span style="font-size:1.2rem;">| CryptoStock</span></div>
+            <div class="badge">母币 $CSTOCK</div>
+            <div class="sub-stock"><i class="fas fa-chart-line"></i> 子币发射协议</div>
+        </div>
+        <div id="walletButton" class="connect-wallet">
+            <i class="fas fa-wallet"></i>
+            <span id="walletStatus">连接钱包</span>
+        </div>
+    </div>
+
+    <div class="grid-2col">
+        <!-- 左侧 质押区 -->
+        <div class="card glow-card">
+            <div class="section-title">
+                <i class="fas fa-cubes"></i> 质押母币 · 获取凭证
+            </div>
+            <div class="current-stock">
+                <div style="font-size:0.8rem; letter-spacing:2px;"><i class="fas fa-rocket"></i> 当前发射子币</div>
+                <div class="stock-name">TESLA</div>
+                <div class="stock-ticker"><i class="fas fa-ticket-alt"></i> 特斯拉凭证 | TSLA-V1</div>
+                <div style="font-size:0.7rem; margin-top:6px;">⚡每质押 880,000 枚母币铸造 1 张凭证 (可叠加)</div>
+            </div>
+            <div class="info-note" style="margin-bottom: 12px; text-align:left;">
+                <i class="fas fa-info-circle"></i> 单地址最大质押 <strong>88,880,000</strong> 枚母币，凭证数量无上限(最高101张)
+            </div>
+            <div class="input-group">
+                <input type="number" id="stakeAmount" placeholder="输入质押数量 (CSTOCK)" value="880000">
+                <span>CSTOCK</span>
+            </div>
+            <button id="stakeBtn"><i class="fas fa-lock"></i> 质押获得特斯拉凭证</button>
+            <div class="stats-grid">
+                <div class="stat-box"><i class="fas fa-chart-simple"></i> 我的总质押<br><span id="myTotalStake">0</span> CSTOCK</div>
+                <div class="stat-box"><i class="fas fa-id-card"></i> 凭证数量<br><span id="myVouchers">0</span> <span id="voucherName">特斯拉凭证</span></div>
+                <div class="stat-box"><i class="fas fa-arrow-up"></i> 剩余可质押<br><span id="remainingCap">88,880,000</span> CSTOCK</div>
+            </div>
+            <div class="voucher-list" id="voucherDisplay">
+                <!-- 动态显示凭证图标 -->
+            </div>
+            <div class="info-note">
+                <i class="fas fa-database"></i> 子币机制：税收回购母币 | 特斯拉凭证可累积，未来可升级子币权益
+            </div>
+        </div>
+
+        <!-- 右侧 数据+后台地址查看 -->
+        <div class="card">
+            <div class="section-title">
+                <i class="fas fa-chart-line"></i> 市场情报 & 子币发射顺序
+            </div>
+            <div class="timeline">
+                <div class="timeline-step active"><i class="fab fa-tesla"></i> TESLA<br>◀ 当前</div>
+                <div class="timeline-step"><i class="fab fa-nvidia"></i> NVIDIA<br>排队中</div>
+                <div class="timeline-step"><i class="fab fa-apple"></i> APPLE<br>排队中</div>
+                <div class="timeline-step"><i class="fab fa-microsoft"></i> MICROSOFT<br>未来</div>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-box"><i class="fas fa-globe"></i> 全网总质押<br><span id="totalStakedGlobal">0</span> CSTOCK</div>
+                <div class="stat-box"><i class="fas fa-ticket"></i> 凭证总发行<br><span id="totalVouchersGlobal">0</span> 张</div>
+                <div class="stat-box"><i class="fas fa-chart-line"></i> 母币回购池<br><span style="color:#f7b32b;">待启动税收</span></div>
+            </div>
+            <!-- 后台地址管控区 -->
+            <div style="margin-top: 20px;">
+                <button id="showBackendBtn" class="admin-btn" style="background: #1f3e48;"><i class="fas fa-eye"></i> 后台查看凭证持有地址 (管理员面板)</button>
+                <div id="backendPanel" style="display:none; margin-top: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span><i class="fas fa-users"></i> 所有质押地址 & 凭证数</span>
+                        <button id="refreshBackendBtn" style="width:auto; padding:0.3rem 1rem; background:#2b4f5e;"><i class="fas fa-sync-alt"></i> 刷新</button>
+                    </div>
+                    <div id="addressListContainer" class="address-table">
+                        <!-- 动态展示地址+质押+凭证 -->
+                        <div style="padding:0.5rem;text-align:center;">加载中...</div>
+                    </div>
+                    <div class="info-note" style="margin-top:8px;">🔒 实时链上本地记录 — 所有质押凭证地址对管理可见</div>
+                </div>
+            </div>
+            <div class="info-note" style="margin-top: 1.5rem;">
+                💡 子币灵活更新机制：社区治理可发射下一个子币 (NVIDIA→APPLE→MSFT) ，届时新凭证将基于质押映射升级。
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ---------- 存储KEY前缀 ----------
+    const STAKE_PREFIX = "cryptostock_stake_";
+    // 全局参数
+    const MIN_STAKE_UNIT = 880000;      // 一个凭证所需母币数量
+    const MAX_STAKE_LIMIT = 88880000;   // 单地址最大质押
+
+    let currentAccount = null;           // 当前连接钱包地址
+    let provider = null;
+    let signer = null;
+
+    // 辅助函数：标准化地址
+    function normalizeAddress(addr) {
+        return addr ? addr.toLowerCase() : null;
+    }
+
+    // 获取某个地址的质押数量
+    function getStakeOf(address) {
+        const key = STAKE_PREFIX + normalizeAddress(address);
+        const val = localStorage.getItem(key);
+        return val ? parseInt(val) : 0;
+    }
+
+    // 设置质押数量
+    function setStakeOf(address, amount) {
+        const key = STAKE_PREFIX + normalizeAddress(address);
+        localStorage.setItem(key, amount.toString());
+    }
+
+    // 计算凭证数量
+    function getVouchersFromStake(stakeAmount) {
+        return Math.floor(stakeAmount / MIN_STAKE_UNIT);
+    }
+
+    // 获取所有存储的地址及质押数据
+    function getAllStakers() {
+        const stakers = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith(STAKE_PREFIX)) {
+                const address = key.replace(STAKE_PREFIX, "");
+                const stakeAmount = parseInt(localStorage.getItem(key));
+                if (!isNaN(stakeAmount) && stakeAmount > 0) {
+                    stakers.push({
+                        address: address,
+                        stake: stakeAmount,
+                        vouchers: getVouchersFromStake(stakeAmount)
+                    });
+                }
+            }
+        }
+        return stakers;
+    }
+
+    // 全局统计数据
+    function updateGlobalStats() {
+        const stakers = getAllStakers();
+        let totalStake = 0;
+        let totalVouchers = 0;
+        stakers.forEach(s => {
+            totalStake += s.stake;
+            totalVouchers += s.vouchers;
+        });
+        document.getElementById("totalStakedGlobal").innerText = totalStake.toLocaleString();
+        document.getElementById("totalVouchersGlobal").innerText = totalVouchers;
+    }
+
+    // 更新当前用户UI (基于currentAccount)
+    async function updateUserUI() {
+        if (!currentAccount) {
+            document.getElementById("myTotalStake").innerText = "0";
+            document.getElementById("myVouchers").innerText = "0";
+            document.getElementById("remainingCap").innerText = MAX_STAKE_LIMIT.toLocaleString();
+            document.getElementById("voucherDisplay").innerHTML = '<div style="opacity:0.6;">未连接钱包</div>';
+            return;
+        }
+        const stake = getStakeOf(currentAccount);
+        const vouchers = getVouchersFromStake(stake);
+        const remaining = Math.max(0, MAX_STAKE_LIMIT - stake);
+        document.getElementById("myTotalStake").innerText = stake.toLocaleString();
+        document.getElementById("myVouchers").innerText = vouchers;
+        document.getElementById("remainingCap").innerText = remaining.toLocaleString();
+        // 渲染凭证图标 (叠加)
+        const voucherContainer = document.getElementById("voucherDisplay");
+        voucherContainer.innerHTML = "";
+        if (vouchers > 0) {
+            const maxShow = Math.min(vouchers, 12);
+            for (let i = 0; i < maxShow; i++) {
+                const voucherDiv = document.createElement("div");
+                voucherDiv.className = "voucher-item";
+                voucherDiv.innerHTML = `<i class="fab fa-tesla voucher-icon"></i> 🔹 特斯拉凭证`;
+                voucherContainer.appendChild(voucherDiv);
+            }
+            if (vouchers > maxShow) {
+                const moreDiv = document.createElement("div");
+                moreDiv.className = "voucher-item";
+                moreDiv.innerHTML = `<i class="fas fa-plus-circle"></i> +${vouchers - maxShow} 张凭证`;
+                voucherContainer.appendChild(moreDiv);
+            }
+        } else {
+            voucherContainer.innerHTML = '<div style="opacity:0.6;"><i class="fas fa-ticket-alt"></i> 暂无凭证，质押母币获得特斯拉凭证</div>';
+        }
+        updateGlobalStats();
+    }
+
+    // 执行质押 (追加)
+    async function performStake(amountToAdd) {
+        if (!currentAccount) {
+            alert("请先连接钱包！");
+            return false;
+        }
+        if (isNaN(amountToAdd) || amountToAdd <= 0) {
+            alert("请输入有效的质押数量 (>0)");
+            return false;
+        }
+        const currentStake = getStakeOf(currentAccount);
+        let newStake = currentStake + amountToAdd;
+        if (newStake > MAX_STAKE_LIMIT) {
+            alert(`❌ 超出单地址最大质押上限 (${MAX_STAKE_LIMIT.toLocaleString()} CSTOCK)，当前可质押剩余 ${(MAX_STAKE_LIMIT - currentStake).toLocaleString()} 枚`);
+            return false;
+        }
+        // 模拟质押交易视觉效果 (无链上扣款，演示质押逻辑)
+        const oldVouchers = getVouchersFromStake(currentStake);
+        setStakeOf(currentAccount, newStake);
+        const newVouchers = getVouchersFromStake(newStake);
+        // 更新UI 并闪动
+        await updateUserUI();
+        // 特效提示
+        const stakeBtn = document.getElementById("stakeBtn");
+        stakeBtn.classList.add("flash");
+        setTimeout(() => stakeBtn.classList.remove("flash"), 500);
+        // 凭证数量变化提示
+        if (newVouchers > oldVouchers) {
+            alert(`✅ 成功质押 ${amountToAdd.toLocaleString()} 母币！\n获得 ${newVouchers - oldVouchers} 张新特斯拉凭证，总计 ${newVouchers} 张。`);
+        } else {
+            alert(`✅ 质押成功！当前总质押 ${newStake.toLocaleString()} CSTOCK，凭证数量 ${newVouchers} 张 (每88万枚累积1张) ，继续质押可叠加凭证。`);
+        }
+        if (window.updateBackendAdmin) window.updateBackendAdmin();
+        return true;
+    }
+
+    // 刷新后台地址列表
+    function renderBackendAddresses() {
+        const stakers = getAllStakers();
+        const container = document.getElementById("addressListContainer");
+        if (!container) return;
+        if (stakers.length === 0) {
+            container.innerHTML = '<div style="padding:0.8rem; text-align:center;">暂无质押地址，等待用户铸造凭证</div>';
+            return;
+        }
+        let html = `<div class="address-row" style="font-weight:bold;"><span>钱包地址</span><span>质押数量(CSTOCK)</span><span>凭证数(TSLA)</span></div>`;
+        stakers.forEach(s => {
+            const shortAddr = s.address.substring(0,6)+"..."+s.address.substring(s.address.length-4);
+            html += `<div class="address-row">
+                        <span><i class="fas fa-ethereum"></i> ${shortAddr}</span>
+                        <span>${s.stake.toLocaleString()}</span>
+                        <span><i class="fab fa-tesla"></i> ${s.vouchers}</span>
+                    </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    function showBackendPanel() {
+        const panel = document.getElementById("backendPanel");
+        if (panel.style.display === "none") {
+            panel.style.display = "block";
+            renderBackendAddresses();
+        } else {
+            panel.style.display = "none";
+        }
+    }
+
+    // 连接钱包功能 (BSC)
+    async function connectWallet() {
+        if (window.ethereum) {
+            try {
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                signer = provider.getSigner();
+                const accounts = await provider.listAccounts();
+                if (accounts.length > 0) {
+                    currentAccount = normalizeAddress(accounts[0]);
+                    document.getElementById("walletStatus").innerHTML = currentAccount.substring(0,6)+"..."+currentAccount.substring(38);
+                    document.getElementById("walletStatus").style.fontFamily = "monospace";
+                    await updateUserUI();
+                    // 监听账户变化
+                    window.ethereum.on('accountsChanged', async (accounts) => {
+                        if (accounts.length > 0) {
+                            currentAccount = normalizeAddress(accounts[0]);
+                            document.getElementById("walletStatus").innerHTML = currentAccount.substring(0,6)+"..."+currentAccount.substring(38);
+                            await updateUserUI();
+                            if (document.getElementById("backendPanel").style.display === "block") renderBackendAddresses();
+                        } else {
+                            currentAccount = null;
+                            document.getElementById("walletStatus").innerHTML = "连接钱包";
+                            await updateUserUI();
+                        }
+                    });
+                } else {
+                    alert("未检测到账户");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("连接失败: "+err.message);
+            }
+        } else {
+            alert("请安装MetaMask或支持BSC的钱包");
+        }
+    }
+
+    // 页面加载时尝试从存储读取已连接? 不主动读取, 但显示演示质押数据样例展示一个预置地址? 为了后台美观可以给一个演示地址
+    function initDemoPlaceholder() {
+        // 若没有任何质押数据，可添加一个演示示例（非强制，让后台看到示例效果）
+        const demoAddr = "0xDemoCryptoStock123456789abc";
+        const demoStake = getStakeOf(demoAddr);
+        if (demoStake === 0 && getAllStakers().length === 0) {
+            // 演示数据：显示一个假后台地址便于展示功能
+            setStakeOf("0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045", 1760000);  // 20个凭证? 176w=2张
+            setStakeOf("0x4B9fE4c6F7c8Ef3A5b3d5E6f7A8B9C0D1E2F3A4B", 880000);
+            setStakeOf("0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb3", 2640000);
+        }
+        updateGlobalStats();
+        if(currentAccount) updateUserUI();
+        else {
+            document.getElementById("myTotalStake").innerText = "0";
+            document.getElementById("myVouchers").innerText = "0";
+            document.getElementById("remainingCap").innerText = MAX_STAKE_LIMIT.toLocaleString();
+            document.getElementById("voucherDisplay").innerHTML = '<div><i class="fas fa-plug"></i> 连接钱包后查看质押凭证</div>';
+        }
+        if(document.getElementById("backendPanel").style.display === "block") renderBackendAddresses();
+    }
+
+    // 监听质押按钮
+    document.addEventListener("DOMContentLoaded", () => {
+        const stakeBtn = document.getElementById("stakeBtn");
+        const stakeInput = document.getElementById("stakeAmount");
+        stakeBtn.addEventListener("click", () => {
+            let amount = parseFloat(stakeInput.value);
+            if (isNaN(amount) || amount <= 0) {
+                alert("请输入有效的母币数量 (数字)");
+                return;
+            }
+            if (!Number.isInteger(amount)) {
+                alert("质押数量应为整数");
+                return;
+            }
+            performStake(amount);
+        });
+        // 连接钱包按钮
+        const walletBtn = document.getElementById("walletButton");
+        walletBtn.addEventListener("click", connectWallet);
+
+        const showBackend = document.getElementById("showBackendBtn");
+        showBackend.addEventListener("click", showBackendPanel);
+        const refreshBackend = document.getElementById("refreshBackendBtn");
+        if(refreshBackend) refreshBackend.addEventListener("click", () => { renderBackendAddresses(); });
+
+        // 初始化演示数据&UI
+        initDemoPlaceholder();
+        window.updateBackendAdmin = function() {
+            if (document.getElementById("backendPanel").style.display === "block") renderBackendAddresses();
+            updateGlobalStats();
+        }
+        // 确保全局统计正确
+        updateGlobalStats();
+    });
+</script>
+</body>
+</html>
