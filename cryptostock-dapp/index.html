@@ -354,6 +354,187 @@
             text-shadow: 0 0 6px #ffb347;
         }
 
+        .launch-visual {
+            position: relative;
+            overflow: hidden;
+            min-height: 210px;
+            margin-top: 1.2rem;
+            border-radius: 1.25rem;
+            border: 1px solid rgba(108, 235, 255, 0.35);
+            background:
+                linear-gradient(180deg, rgba(16, 36, 70, 0.66), rgba(5, 12, 24, 0.9)),
+                radial-gradient(circle at 78% 12%, rgba(68, 221, 255, 0.26), transparent 28%),
+                linear-gradient(90deg, rgba(15, 28, 72, 0.9), rgba(18, 33, 74, 0.55), rgba(7, 12, 30, 0.92));
+            box-shadow: inset 0 0 42px rgba(96, 190, 255, 0.14), 0 18px 30px rgba(0, 0, 0, 0.28);
+        }
+
+        .launch-visual::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(160, 220, 255, 0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(160, 220, 255, 0.08) 1px, transparent 1px);
+            background-size: 64px 42px;
+            opacity: 0.7;
+        }
+
+        .launch-visual::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 42%;
+            background:
+                linear-gradient(135deg, transparent 0 12%, rgba(88, 255, 196, 0.28) 12% 13%, transparent 13% 100%),
+                linear-gradient(165deg, transparent 0 36%, rgba(94, 202, 255, 0.22) 36% 37%, transparent 37% 100%),
+                linear-gradient(0deg, rgba(6, 12, 24, 0.92), transparent);
+        }
+
+        .launch-city {
+            position: absolute;
+            right: 5%;
+            bottom: 0;
+            width: 34%;
+            height: 56%;
+            opacity: 0.62;
+            background:
+                linear-gradient(to top, rgba(120, 188, 255, 0.4) 0 34%, transparent 34%) 0 100% / 12% 75% no-repeat,
+                linear-gradient(to top, rgba(120, 188, 255, 0.34) 0 46%, transparent 46%) 18% 100% / 10% 62% no-repeat,
+                linear-gradient(to top, rgba(255, 212, 111, 0.54) 0 74%, transparent 74%) 36% 100% / 12% 88% no-repeat,
+                linear-gradient(to top, rgba(120, 188, 255, 0.3) 0 52%, transparent 52%) 58% 100% / 16% 68% no-repeat,
+                linear-gradient(to top, rgba(120, 188, 255, 0.28) 0 42%, transparent 42%) 82% 100% / 13% 58% no-repeat;
+        }
+
+        .launch-row {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            align-items: center;
+            gap: 0.35rem;
+            height: 100%;
+            min-height: 210px;
+            padding: 1rem 1.1rem 1.35rem;
+        }
+
+        .launch-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
+            min-width: 0;
+            text-align: center;
+            position: relative;
+        }
+
+        .launch-node:not(:last-child)::after {
+            content: "";
+            position: absolute;
+            top: 42%;
+            right: -18%;
+            width: 42%;
+            height: 9px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, rgba(125, 255, 183, 0.1), #93ffc2);
+            box-shadow: 0 0 18px rgba(125, 255, 183, 0.75);
+            z-index: -1;
+        }
+
+        .launch-node:not(:last-child)::before {
+            content: "";
+            position: absolute;
+            top: calc(42% + 4px);
+            right: -23%;
+            transform: translateY(-50%);
+            border-left: 15px solid #93ffc2;
+            border-top: 13px solid transparent;
+            border-bottom: 13px solid transparent;
+            filter: drop-shadow(0 0 10px rgba(125, 255, 183, 0.85));
+            z-index: -1;
+        }
+
+        .launch-circle {
+            width: clamp(56px, 7vw, 96px);
+            aspect-ratio: 1;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: radial-gradient(circle at 42% 34%, #17233f, #070b1a 72%);
+            border: 3px solid rgba(180, 255, 196, 0.9);
+            box-shadow:
+                0 0 0 4px rgba(88, 255, 196, 0.12),
+                0 0 24px rgba(123, 255, 182, 0.42),
+                inset 0 0 22px rgba(61, 130, 255, 0.18);
+        }
+
+        .launch-circle i,
+        .launch-mark,
+        .tesla-logo {
+            font-size: clamp(1.45rem, 2.6vw, 2.55rem);
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .launch-node.tesla .launch-circle {
+            border-color: rgba(218, 238, 255, 0.96);
+            box-shadow: 0 0 24px rgba(144, 194, 255, 0.42), inset 0 0 20px rgba(255, 80, 80, 0.16);
+        }
+
+        .launch-node.tesla i {
+            color: #ff4d45;
+        }
+
+        .tesla-logo {
+            width: clamp(48px, 6.4vw, 86px);
+            height: auto;
+            display: block;
+            object-fit: contain;
+            filter: drop-shadow(0 0 12px rgba(255, 77, 69, 0.62));
+        }
+
+        .launch-node.nvidia .launch-mark {
+            color: #9bef48;
+        }
+
+        .launch-node.apple i {
+            color: #f4f8ff;
+        }
+
+        .launch-node.microsoft .launch-mark {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 3px;
+            width: clamp(28px, 3.9vw, 48px);
+        }
+
+        .launch-node.microsoft .launch-mark span {
+            aspect-ratio: 1;
+        }
+
+        .launch-node.microsoft .launch-mark span:nth-child(1) { background: #f25022; }
+        .launch-node.microsoft .launch-mark span:nth-child(2) { background: #7fba00; }
+        .launch-node.microsoft .launch-mark span:nth-child(3) { background: #00a4ef; }
+        .launch-node.microsoft .launch-mark span:nth-child(4) { background: #ffb900; }
+
+        .launch-name {
+            font-weight: 800;
+            font-size: clamp(0.66rem, 1.05vw, 0.95rem);
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+            max-width: 100%;
+            overflow-wrap: anywhere;
+        }
+
+        .launch-name small {
+            display: block;
+            margin-top: 0.25rem;
+            color: #d6ecff;
+            font-size: 0.72em;
+            font-weight: 600;
+        }
+
         .admin-btn {
             background: #2a3342;
             border: 1px solid #6c8b9e;
@@ -414,6 +595,35 @@
             }
             .nav-actions {
                 justify-content: flex-start;
+            }
+            .launch-visual,
+            .launch-row {
+                min-height: 180px;
+            }
+            .launch-row {
+                gap: 0.1rem;
+                padding: 0.8rem 0.55rem 1rem;
+            }
+            .launch-circle {
+                width: clamp(46px, 12vw, 64px);
+                border-width: 2px;
+            }
+            .launch-node:not(:last-child)::after {
+                right: -17%;
+                width: 32%;
+                height: 7px;
+            }
+            .launch-node:not(:last-child)::before {
+                right: -22%;
+                border-left-width: 10px;
+                border-top-width: 9px;
+                border-bottom-width: 9px;
+            }
+            .launch-name {
+                font-size: 0.62rem;
+            }
+            .launch-name small {
+                font-size: 0.68em;
             }
         }
     </style>
@@ -518,6 +728,31 @@
             </div>
             <div class="info-note" style="margin-top: 1.5rem;">
                 💡 子币发射顺序：TESLA → NVIDIA → APPLE → MICROSOFT。当前发射子币为 TESLA。
+            </div>
+            <div class="launch-visual" aria-label="子币发射顺序图">
+                <div class="launch-city"></div>
+                <div class="launch-row">
+                    <div class="launch-node tesla">
+                        <div class="launch-circle">
+                            <img class="tesla-logo" src="assets/tesla-logo.svg" alt="Tesla">
+                        </div>
+                        <div class="launch-name">TESLA<small>特斯拉 (TSLA)</small></div>
+                    </div>
+                    <div class="launch-node nvidia">
+                        <div class="launch-circle"><div class="launch-mark">NV</div></div>
+                        <div class="launch-name">NVIDIA<small>英伟达 (NVDA)</small></div>
+                    </div>
+                    <div class="launch-node apple">
+                        <div class="launch-circle"><i class="fab fa-apple"></i></div>
+                        <div class="launch-name">APPLE<small>苹果 (AAPL)</small></div>
+                    </div>
+                    <div class="launch-node microsoft">
+                        <div class="launch-circle">
+                            <div class="launch-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+                        </div>
+                        <div class="launch-name">MICROSOFT<small>微软 (MSFT)</small></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
