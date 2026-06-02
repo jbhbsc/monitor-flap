@@ -1,0 +1,846 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>加密股 · 特斯拉凭证发射台 | 子币质押协议</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Inter", sans-serif;
+            background: radial-gradient(circle at 20% 30%, #0a0f1e, #03050b);
+            color: #eef5ff;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .grid-bg {
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .stock-wave {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 120px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 120"><path fill="none" stroke="rgba(0,255,200,0.15)" stroke-width="2" d="M0,64L48,58.7C96,53,192,43,288,48C384,53,480,75,576,80C672,85,768,75,864,69.3C960,64,1056,64,1152,58.7C1248,53,1344,43,1392,37.3L1440,32L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z"/></svg>') repeat-x bottom;
+            background-size: 300px 80px;
+            opacity: 0.5;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 2;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem 3rem;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2.5rem;
+            background: rgba(10, 20, 30, 0.55);
+            backdrop-filter: blur(12px);
+            border-radius: 2rem;
+            padding: 0.8rem 2rem;
+            border: 1px solid rgba(0, 255, 200, 0.25);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #F0B90B, #00e0ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: 0;
+        }
+
+        .badge {
+            background: rgba(0,255,200,0.2);
+            border-radius: 40px;
+            padding: 0.2rem 0.8rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            border: 1px solid #0affc0;
+            color: #0affc0;
+        }
+
+        .sub-stock {
+            font-family: "Space Mono", monospace;
+            font-size: 0.8rem;
+            color: #b9f3ff;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .social-link,
+        .connect-wallet {
+            background: linear-gradient(95deg, #0f212e, #07141e);
+            border: 1px solid #2affc0;
+            color: #eef5ff;
+            box-shadow: 0 0 6px rgba(42,255,192,0.3);
+            transition: 0.2s;
+        }
+
+        .social-link {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+
+        .social-link svg {
+            width: 21px;
+            height: 21px;
+            display: block;
+        }
+
+        .connect-wallet {
+            border-radius: 3rem;
+            padding: 0.6rem 1.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .connect-wallet:hover,
+        .social-link:hover {
+            background: #1c3f3a;
+            border-color: #ffd966;
+            transform: translateY(-1px);
+            box-shadow: 0 0 12px #ffdf8c;
+        }
+
+        .wallet-address {
+            font-family: "Space Mono", monospace;
+            font-size: 0.8rem;
+        }
+
+        .wallet-info {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .wallet-card {
+            min-width: 0;
+            background: rgba(8, 18, 28, 0.72);
+            backdrop-filter: blur(12px);
+            border-radius: 1.5rem;
+            border: 1px solid rgba(0, 255, 200, 0.3);
+            padding: 1rem 1.2rem;
+            box-shadow: 0 16px 28px -18px rgba(0,0,0,0.55);
+        }
+
+        .wallet-card span {
+            display: block;
+            color: #8aaec0;
+            font-size: 0.78rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .wallet-card strong {
+            display: block;
+            font-size: 1.08rem;
+            word-break: break-all;
+        }
+
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 2rem;
+        }
+
+        .card {
+            background: rgba(8, 18, 28, 0.7);
+            backdrop-filter: blur(12px);
+            border-radius: 2rem;
+            border: 1px solid rgba(0, 255, 200, 0.35);
+            padding: 1.6rem 1.8rem;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.5);
+            transition: all 0.2s;
+        }
+
+        .glow-card {
+            background: linear-gradient(125deg, rgba(0,40,50,0.6), rgba(0,15,25,0.8));
+            border-top: 2px solid #00e0ff;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-left: 4px solid #0affc0;
+            padding-left: 1rem;
+        }
+
+        .current-stock {
+            background: linear-gradient(120deg, #2c2a3e, #111725);
+            border-radius: 2rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            text-align: center;
+            border: 1px solid #ffcf4a;
+        }
+
+        .stock-name {
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #FFDF7E, #FFA63F);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .stock-ticker {
+            font-family: "Space Mono", monospace;
+            font-size: 1rem;
+            color: #a0f0ff;
+        }
+
+        .input-group {
+            background: #0e1a24;
+            border-radius: 1.5rem;
+            padding: 0.3rem 1rem;
+            display: flex;
+            align-items: center;
+            margin: 1.2rem 0;
+            border: 1px solid #2f5b6e;
+        }
+
+        .input-group input {
+            background: transparent;
+            border: none;
+            padding: 1rem 0.5rem;
+            width: 100%;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            outline: none;
+        }
+
+        .input-group span {
+            color: #7fcdff;
+            font-weight: 600;
+        }
+
+        button {
+            background: linear-gradient(95deg, #09b58f, #048a6f);
+            border: none;
+            border-radius: 3rem;
+            padding: 0.9rem 1.8rem;
+            font-weight: 700;
+            font-size: 1rem;
+            width: 100%;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+        }
+
+        button:hover {
+            filter: brightness(1.08);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 18px rgba(0,200,150,0.3);
+        }
+
+        .stats-grid {
+            display: flex;
+            justify-content: space-between;
+            margin: 1.2rem 0;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-box {
+            background: #07161f;
+            border-radius: 1.5rem;
+            padding: 0.8rem;
+            flex: 1;
+            text-align: center;
+            border: 1px solid #278b6f;
+            min-width: 150px;
+        }
+
+        .voucher-list {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .voucher-item {
+            background: radial-gradient(ellipse at 30% 20%, #1b4e44, #06222b);
+            border-radius: 1.2rem;
+            padding: 0.5rem 1rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid gold;
+        }
+
+        .voucher-icon {
+            font-size: 1.4rem;
+        }
+
+        .timeline {
+            display: flex;
+            justify-content: space-between;
+            margin: 1.2rem 0;
+            background: #05101680;
+            border-radius: 2rem;
+            padding: 0.8rem;
+        }
+
+        .timeline-step {
+            text-align: center;
+            flex: 1;
+            font-size: 0.8rem;
+            font-weight: 600;
+            opacity: 0.6;
+        }
+
+        .timeline-step.active {
+            opacity: 1;
+            color: #ffd966;
+            text-shadow: 0 0 6px #ffb347;
+        }
+
+        .admin-btn {
+            background: #2a3342;
+            border: 1px solid #6c8b9e;
+            margin-top: 1rem;
+            box-shadow: none;
+        }
+
+        .address-table {
+            margin-top: 1rem;
+            max-height: 240px;
+            overflow-y: auto;
+            font-size: 0.75rem;
+            background: #031016aa;
+            border-radius: 1rem;
+            padding: 0.5rem;
+        }
+
+        .address-row {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr 0.8fr;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border-bottom: 1px solid #2f676b;
+            font-family: monospace;
+        }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #0a1a1f; }
+        ::-webkit-scrollbar-thumb { background: #1fbba5; border-radius: 20px; }
+
+        .flash {
+            animation: pulse 0.6s ease;
+        }
+
+        @keyframes pulse {
+            0% { background: rgba(0,255,200,0.3); }
+            100% { background: transparent; }
+        }
+
+        .info-note {
+            font-size: 0.78rem;
+            color: #8aaec0;
+            text-align: center;
+            margin-top: 1rem;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 900px) {
+            .grid-2col,
+            .wallet-info {
+                grid-template-columns: 1fr;
+            }
+            .container {
+                padding: 1rem;
+            }
+            .navbar {
+                align-items: flex-start;
+            }
+            .nav-actions {
+                justify-content: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="stock-wave"></div>
+
+<div class="container">
+    <div class="navbar">
+        <div class="logo-area">
+            <div class="logo">⚡加密股<span style="font-size:1.2rem;"> | CryptoStock</span></div>
+            <div class="badge">母币：加密股</div>
+            <div class="sub-stock"><i class="fas fa-chart-line"></i> 子币发射协议</div>
+        </div>
+        <div class="nav-actions">
+            <a class="social-link" href="https://t.me/jiamigu888" target="_blank" rel="noreferrer" title="Telegram" aria-label="Telegram">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#29a9ea" d="M21.7 4.1 18.4 20c-.2 1.1-.9 1.4-1.8.9l-5-3.7-2.4 2.3c-.3.3-.5.5-1 .5l.4-5.1 9.3-8.4c.4-.4-.1-.6-.6-.2L5.8 13.5.9 12c-1.1-.3-1.1-1.1.2-1.6L20.2 3c.9-.3 1.7.2 1.5 1.1Z"/></svg>
+            </a>
+            <a class="social-link" href="https://x.com/bsctomsn" target="_blank" rel="noreferrer" title="X" aria-label="X">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#f8fafc" d="M18.9 2h3.2l-7 8 8.2 12h-6.4l-5-7.4L6.2 22H3l7.5-8.6L2.6 2h6.6l4.5 6.6L18.9 2Zm-1.1 17.9h1.8L8.2 4H6.3l11.5 15.9Z"/></svg>
+            </a>
+            <div id="walletButton" class="connect-wallet">
+                <i class="fas fa-wallet"></i>
+                <span id="walletStatus">连接钱包</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="wallet-info">
+        <div class="wallet-card">
+            <span>代币合约</span>
+            <strong id="tokenContractText">0x72ff71510a9c85ad9fd0c0a341fc647818d07777</strong>
+        </div>
+        <div class="wallet-card">
+            <span>我的代币余额</span>
+            <strong id="tokenBalanceText">未连接</strong>
+        </div>
+        <div class="wallet-card">
+            <span>钱包状态</span>
+            <strong id="walletStateText">等待连接</strong>
+        </div>
+    </div>
+
+    <div class="grid-2col">
+        <div class="card glow-card">
+            <div class="section-title">
+                <i class="fas fa-cubes"></i> 质押母币 · 获取凭证
+            </div>
+            <div class="current-stock">
+                <div style="font-size:0.8rem; letter-spacing:2px;"><i class="fas fa-rocket"></i> 当前发射子币</div>
+                <div class="stock-name">TESLA</div>
+                <div class="stock-ticker"><i class="fas fa-ticket-alt"></i> 特斯拉凭证 | TSLA-V1</div>
+                <div style="font-size:0.7rem; margin-top:6px;">⚡ 每质押 880,000 枚加密股获得 1 张 TESLA Voucher，可叠加</div>
+            </div>
+            <div class="info-note" style="margin-bottom: 12px; text-align:left;">
+                <i class="fas fa-info-circle"></i> 单地址最多质押 <strong>88,880,000</strong> 枚加密股，按累计质押总量每满 880,000 枚获得 1 张 TESLA Voucher。
+            </div>
+            <div class="input-group">
+                <input type="number" id="stakeAmount" placeholder="输入质押数量 (加密股)" value="880000" step="1" min="1" max="88880000">
+                <span>加密股</span>
+            </div>
+            <button id="stakeBtn"><i class="fas fa-lock"></i> 质押加密股获得 TESLA Voucher</button>
+            <div class="stats-grid">
+                <div class="stat-box"><i class="fas fa-chart-simple"></i> 我的总质押<br><span id="myTotalStake">0</span> 加密股</div>
+                <div class="stat-box"><i class="fas fa-id-card"></i> 凭证数量<br><span id="myVouchers">0</span> <span id="voucherName">TESLA Voucher</span></div>
+                <div class="stat-box"><i class="fas fa-arrow-up"></i> 剩余可质押<br><span id="remainingCap">88,880,000</span> 加密股</div>
+            </div>
+            <div class="voucher-list" id="voucherDisplay"></div>
+            <div class="info-note">
+                <i class="fas fa-database"></i> 质押会把加密股转入项目钱包；按累计质押总量每满 88 万枚获得 1 张 TESLA Voucher，数量可叠加。
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">
+                <i class="fas fa-chart-line"></i> 市场情报 & 子币发射顺序
+            </div>
+            <div class="timeline">
+                <div class="timeline-step active"><i class="fab fa-tesla"></i> TESLA<br>● 当前</div>
+                <div class="timeline-step"><i class="fas fa-microchip"></i> NVIDIA<br>排队中</div>
+                <div class="timeline-step"><i class="fab fa-apple"></i> APPLE<br>排队中</div>
+                <div class="timeline-step"><i class="fab fa-microsoft"></i> MICROSOFT<br>未来</div>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-box"><i class="fas fa-globe"></i> 全网总质押<br><span id="totalStakedGlobal">0</span> 加密股</div>
+                <div class="stat-box"><i class="fas fa-ticket"></i> 凭证总发行<br><span id="totalVouchersGlobal">0</span> 张</div>
+                <div class="stat-box"><i class="fas fa-chart-line"></i> 母币回购池<br><span style="color:#f7b32b;">待启动税收</span></div>
+            </div>
+            <div style="margin-top: 20px;">
+                <button id="showBackendBtn" class="admin-btn" style="background: #1f3e48;"><i class="fas fa-eye"></i> 后台查看凭证持有地址</button>
+                <div id="backendPanel" style="display:none; margin-top: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
+                        <span><i class="fas fa-users"></i> 所有质押地址 & 凭证数</span>
+                        <button id="refreshBackendBtn" style="width:auto; padding:0.3rem 1rem; background:#2b4f5e;"><i class="fas fa-sync-alt"></i> 刷新</button>
+                    </div>
+                    <div id="addressListContainer" class="address-table">
+                        <div style="padding:0.5rem;text-align:center;">加载中...</div>
+                    </div>
+                    <div class="info-note" style="margin-top:8px;">🔒 记录已成功质押的钱包地址、质押数量和凭证数量。</div>
+                </div>
+            </div>
+            <div class="info-note" style="margin-top: 1.5rem;">
+                💡 子币发射顺序：TESLA → NVIDIA → APPLE → MICROSOFT。当前发射子币为 TESLA。
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const TOKEN_ADDRESS = "0x72ff71510a9c85ad9fd0c0a341fc647818d07777";
+    const TOKEN_SYMBOL_FALLBACK = "加密股";
+    const BSC_CHAIN_ID = "0x38";
+    const STAKE_PREFIX = "cryptostock_stake_";
+    const MIN_STAKE_UNIT = 880000;
+    const MAX_STAKE_LIMIT = 88880000;
+    const STAKE_RECEIVER_ADDRESS = "0x0f3daA1Ce491a85f4DfEef4f21f2FE828b7A4b42";
+    const CURRENT_CHILD_TOKEN = "TESLA";
+    const CURRENT_VOUCHER_NAME = "TESLA Voucher";
+    const CHILD_TOKEN_SEQUENCE = ["TESLA", "NVIDIA", "APPLE", "MICROSOFT"];
+    const ERC20_ABI = [
+        "function decimals() view returns (uint8)",
+        "function symbol() view returns (string)",
+        "function balanceOf(address account) view returns (uint256)",
+        "function transfer(address to, uint256 amount) returns (bool)"
+    ];
+
+    let currentAccount = null;
+    let provider = null;
+    let signer = null;
+    let tokenContract = null;
+    let tokenDecimals = 18;
+    let tokenSymbol = TOKEN_SYMBOL_FALLBACK;
+    let tokenBalance = ethers.BigNumber.from(0);
+    let receiverTokenBalance = ethers.BigNumber.from(0);
+
+    function normalizeAddress(addr) {
+        return addr ? addr.toLowerCase() : null;
+    }
+
+    function shortAddress(addr) {
+        return addr ? addr.slice(0, 6) + "..." + addr.slice(-4) : "-";
+    }
+
+    function getStakeOf(address) {
+        const key = STAKE_PREFIX + normalizeAddress(address);
+        const val = localStorage.getItem(key);
+        return val ? parseInt(val, 10) : 0;
+    }
+
+    function setStakeOf(address, amount) {
+        const key = STAKE_PREFIX + normalizeAddress(address);
+        localStorage.setItem(key, amount.toString());
+    }
+
+    function getVouchersFromStake(stakeAmount) {
+        return Math.floor(stakeAmount / MIN_STAKE_UNIT);
+    }
+
+    function getAllStakers() {
+        const stakers = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith(STAKE_PREFIX)) {
+                const address = key.replace(STAKE_PREFIX, "");
+                const stakeAmount = parseInt(localStorage.getItem(key), 10);
+                if (!Number.isNaN(stakeAmount) && stakeAmount > 0) {
+                    stakers.push({
+                        address,
+                        stake: stakeAmount,
+                        vouchers: getVouchersFromStake(stakeAmount)
+                    });
+                }
+            }
+        }
+        return stakers;
+    }
+
+    function formatTokenAmount(value) {
+        const raw = ethers.utils.formatUnits(value, tokenDecimals);
+        const parts = raw.split(".");
+        const whole = Number(parts[0] || "0").toLocaleString();
+        const fraction = (parts[1] || "").slice(0, 4).replace(/0+$/, "");
+        return fraction ? whole + "." + fraction : whole;
+    }
+
+    function renderWalletInfo() {
+        document.getElementById("tokenContractText").textContent = TOKEN_ADDRESS;
+        document.getElementById("tokenBalanceText").textContent = currentAccount ? `${formatTokenAmount(tokenBalance)} ${tokenSymbol}` : "未连接";
+        document.getElementById("walletStateText").textContent = currentAccount ? `已连接 ${shortAddress(currentAccount)}` : "等待连接";
+    }
+
+    function updateGlobalStats() {
+        const totalStake = Number(ethers.utils.formatUnits(receiverTokenBalance, tokenDecimals));
+        const totalVouchers = Math.floor(totalStake / MIN_STAKE_UNIT);
+        document.getElementById("totalStakedGlobal").innerText = Math.floor(totalStake).toLocaleString();
+        document.getElementById("totalVouchersGlobal").innerText = totalVouchers.toLocaleString();
+    }
+
+    async function updateUserUI() {
+        renderWalletInfo();
+        if (!currentAccount) {
+            document.getElementById("myTotalStake").innerText = "0";
+            document.getElementById("myVouchers").innerText = "0";
+            document.getElementById("remainingCap").innerText = MAX_STAKE_LIMIT.toLocaleString();
+            document.getElementById("voucherDisplay").innerHTML = '<div style="opacity:0.6;"><i class="fas fa-plug"></i> 连接钱包后查看质押凭证</div>';
+            return;
+        }
+        const stake = getStakeOf(currentAccount);
+        const vouchers = getVouchersFromStake(stake);
+        const remaining = Math.max(0, MAX_STAKE_LIMIT - stake);
+        document.getElementById("myTotalStake").innerText = stake.toLocaleString();
+        document.getElementById("myVouchers").innerText = vouchers;
+        document.getElementById("remainingCap").innerText = remaining.toLocaleString();
+
+        const voucherContainer = document.getElementById("voucherDisplay");
+        voucherContainer.innerHTML = "";
+        if (vouchers > 0) {
+            const maxShow = Math.min(vouchers, 12);
+            for (let i = 0; i < maxShow; i++) {
+                const voucherDiv = document.createElement("div");
+                voucherDiv.className = "voucher-item";
+                voucherDiv.innerHTML = '<i class="fab fa-tesla voucher-icon"></i> TESLA Voucher';
+                voucherContainer.appendChild(voucherDiv);
+            }
+            if (vouchers > maxShow) {
+                const moreDiv = document.createElement("div");
+                moreDiv.className = "voucher-item";
+                moreDiv.innerHTML = `<i class="fas fa-plus-circle"></i> +${vouchers - maxShow} 张凭证`;
+                voucherContainer.appendChild(moreDiv);
+            }
+        } else {
+            voucherContainer.innerHTML = '<div style="opacity:0.6;"><i class="fas fa-ticket-alt"></i> 暂无凭证，质押加密股获得 TESLA Voucher</div>';
+        }
+        updateGlobalStats();
+    }
+
+    async function refreshTokenBalance() {
+        if (!tokenContract) {
+            renderWalletInfo();
+            updateGlobalStats();
+            return;
+        }
+        try {
+            receiverTokenBalance = await tokenContract.balanceOf(STAKE_RECEIVER_ADDRESS);
+            if (currentAccount) {
+                tokenBalance = await tokenContract.balanceOf(currentAccount);
+            }
+        } catch (error) {
+            console.error(error);
+            if (currentAccount) tokenBalance = ethers.BigNumber.from(0);
+        }
+        renderWalletInfo();
+        updateGlobalStats();
+    }
+
+    async function performStake(amountToAdd) {
+        if (!currentAccount || !tokenContract) {
+            alert("请先连接钱包。");
+            return false;
+        }
+        if (Number.isNaN(amountToAdd) || amountToAdd <= 0 || !Number.isInteger(amountToAdd)) {
+            alert("请输入有效的整数质押数量。");
+            return false;
+        }
+        const currentStake = getStakeOf(currentAccount);
+        const newStake = currentStake + amountToAdd;
+        if (newStake > MAX_STAKE_LIMIT) {
+            alert(`超出单地址最大质押上限，当前可质押剩余 ${(MAX_STAKE_LIMIT - currentStake).toLocaleString()} 枚。`);
+            return false;
+        }
+
+        const amountOnChain = ethers.utils.parseUnits(String(amountToAdd), tokenDecimals);
+        if (tokenBalance.lt(amountOnChain)) {
+            alert("代币余额不足，无法质押。");
+            return false;
+        }
+
+        const stakeBtn = document.getElementById("stakeBtn");
+        stakeBtn.disabled = true;
+        const oldText = stakeBtn.innerHTML;
+        stakeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 等待钱包确认转账';
+
+        try {
+            const oldVouchers = getVouchersFromStake(currentStake);
+            const tx = await tokenContract.transfer(STAKE_RECEIVER_ADDRESS, amountOnChain);
+            stakeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 交易确认中';
+            await tx.wait();
+
+            setStakeOf(currentAccount, newStake);
+            const newVouchers = getVouchersFromStake(newStake);
+            await refreshTokenBalance();
+            await updateUserUI();
+
+            stakeBtn.classList.add("flash");
+            setTimeout(() => stakeBtn.classList.remove("flash"), 500);
+            const addedVouchers = newVouchers - oldVouchers;
+            const voucherText = addedVouchers > 0
+                ? `新增 ${addedVouchers} 张 ${CURRENT_VOUCHER_NAME}，当前共 ${newVouchers} 张。`
+                : `当前累计 ${newStake.toLocaleString()} 枚，未满下一张凭证门槛。`;
+            alert(`质押成功：${amountToAdd.toLocaleString()} 枚加密股已转入项目钱包。\n${voucherText}`);
+            renderBackendAddresses();
+            return true;
+        } catch (error) {
+            console.error(error);
+            alert("质押失败：" + (error.data?.message || error.message || error));
+            return false;
+        } finally {
+            stakeBtn.disabled = false;
+            stakeBtn.innerHTML = oldText;
+        }
+    }
+
+    function renderBackendAddresses() {
+        const stakers = getAllStakers();
+        const container = document.getElementById("addressListContainer");
+        if (!container) return;
+        if (stakers.length === 0) {
+            container.innerHTML = '<div style="padding:0.8rem; text-align:center;">暂无质押地址。</div>';
+            return;
+        }
+        let html = '<div class="address-row" style="font-weight:bold;"><span>钱包地址</span><span>质押数量</span><span>TESLA Voucher</span></div>';
+        stakers.forEach(s => {
+            html += `<div class="address-row">
+                        <span>${shortAddress(s.address)}</span>
+                        <span>${s.stake.toLocaleString()}</span>
+                        <span><i class="fab fa-tesla"></i> ${s.vouchers}</span>
+                    </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    function showBackendPanel() {
+        const panel = document.getElementById("backendPanel");
+        panel.style.display = panel.style.display === "none" ? "block" : "none";
+        if (panel.style.display === "block") renderBackendAddresses();
+    }
+
+    async function switchToBSC() {
+        try {
+            await window.ethereum.request({
+                method: "wallet_switchEthereumChain",
+                params: [{ chainId: BSC_CHAIN_ID }]
+            });
+            return true;
+        } catch (err) {
+            if (err.code !== 4902) return false;
+            await window.ethereum.request({
+                method: "wallet_addEthereumChain",
+                params: [{
+                    chainId: BSC_CHAIN_ID,
+                    chainName: "BNB Smart Chain",
+                    nativeCurrency: { name: "BNB", symbol: "BNB", decimals: 18 },
+                    rpcUrls: ["https://bsc-dataseed.binance.org/"],
+                    blockExplorerUrls: ["https://bscscan.com/"]
+                }]
+            });
+            return true;
+        }
+    }
+
+    async function connectWallet() {
+        if (!window.ethereum) {
+            alert("请安装 MetaMask、OKX Wallet 或支持 BSC 的钱包。");
+            return;
+        }
+        try {
+            const isBSC = await switchToBSC();
+            if (!isBSC) {
+                alert("请切换到 BNB Smart Chain。");
+                return;
+            }
+            provider = new ethers.providers.Web3Provider(window.ethereum);
+            await window.ethereum.request({ method: "eth_requestAccounts" });
+            signer = provider.getSigner();
+            const accounts = await provider.listAccounts();
+            if (!accounts.length) {
+                alert("未检测到账户。");
+                return;
+            }
+            currentAccount = normalizeAddress(accounts[0]);
+            tokenContract = new ethers.Contract(TOKEN_ADDRESS, ERC20_ABI, signer);
+            try {
+                tokenDecimals = await tokenContract.decimals();
+                tokenSymbol = await tokenContract.symbol();
+            } catch (error) {
+                tokenDecimals = 18;
+                tokenSymbol = TOKEN_SYMBOL_FALLBACK;
+            }
+            document.getElementById("walletStatus").innerHTML = shortAddress(currentAccount);
+            document.getElementById("walletStatus").classList.add("wallet-address");
+            await refreshTokenBalance();
+            await updateUserUI();
+
+            window.ethereum.on("accountsChanged", async (accounts) => {
+                currentAccount = accounts.length ? normalizeAddress(accounts[0]) : null;
+                document.getElementById("walletStatus").innerHTML = currentAccount ? shortAddress(currentAccount) : "连接钱包";
+                await refreshTokenBalance();
+                await updateUserUI();
+                if (document.getElementById("backendPanel").style.display === "block") renderBackendAddresses();
+            });
+            window.ethereum.on("chainChanged", () => window.location.reload());
+        } catch (err) {
+            console.error(err);
+            alert("连接失败：" + (err.message || err));
+        }
+    }
+
+    function initDemoPlaceholder() {
+        updateGlobalStats();
+        updateUserUI();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("stakeBtn").addEventListener("click", () => {
+            const amount = Number(document.getElementById("stakeAmount").value);
+            if (!Number.isInteger(amount) || amount <= 0) {
+                alert("请输入有效的整数质押数量。");
+                return;
+            }
+            performStake(amount);
+        });
+        document.getElementById("walletButton").addEventListener("click", connectWallet);
+        document.getElementById("showBackendBtn").addEventListener("click", showBackendPanel);
+        document.getElementById("refreshBackendBtn").addEventListener("click", renderBackendAddresses);
+        initDemoPlaceholder();
+    });
+</script>
+</body>
+</html>
