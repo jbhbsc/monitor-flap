@@ -2,6 +2,7 @@ const CONFIG = {
   bscChainIdHex: window.QWFLAP_CONFIG?.bscChainIdHex || "0x38",
   bscChainId: window.QWFLAP_CONFIG?.bscChainId || 56,
   kofTokenAddress: window.QWFLAP_CONFIG?.kofTokenAddress || "0x0000000000000000000000000000000000000000",
+  tokenSymbol: window.QWFLAP_CONFIG?.tokenSymbol || "$KOF",
   arenaContractAddress: window.QWFLAP_CONFIG?.arenaContractAddress || "0x0000000000000000000000000000000000000000",
 };
 
@@ -24,9 +25,10 @@ const SKILLS = [
 ];
 
 const ENEMIES = ["NeonFist", "ShadowMax", "RoofTiger", "VioletZero", "BurningWay"];
-const ERC20_ABI = [
-  "0x70a08231000000000000000000000000",
-];
+const ERC20_CALLS = {
+  balanceOf: "0x70a08231",
+  decimals: "0x313ce567",
+};
 
 const state = {
   account: "",
@@ -54,6 +56,27 @@ const $ = (id) => document.getElementById(id);
 
 function fmt(n) {
   return Math.floor(n).toLocaleString("en-US");
+}
+
+function isZeroAddress(address) {
+  return !address || address === "0x0000000000000000000000000000000000000000";
+}
+
+function tokenCallData(selector, address = "") {
+  return `${selector}${address ? address.slice(2).padStart(64, "0") : ""}`;
+}
+
+function formatTokenAmount(raw, decimals) {
+  const value = BigInt(raw || "0x0");
+  const base = 10n ** BigInt(decimals);
+  const whole = value / base;
+  const fraction = value % base;
+  const fractionText = fraction
+    .toString()
+    .padStart(decimals, "0")
+    .slice(0, 4)
+    .replace(/0+$/, "");
+  return `${whole.toLocaleString("en-US")}${fractionText ? `.${fractionText}` : ""}`;
 }
 
 function shortAddress(address) {
@@ -148,6 +171,7 @@ function renderAll() {
   $("energyEarned").textContent = state.energyEarned;
   $("winRate").textContent = state.matches ? `${Math.round((state.wins / state.matches) * 100)}%` : "0%";
   $("walletLabel").textContent = shortAddress(state.account);
+  $("connectBtn").textContent = state.account ? shortAddress(state.account) : "连接钱包";
   renderCharacters();
   renderSkills();
   renderPips();
@@ -163,10 +187,24 @@ async function connectWallet() {
     state.account = accounts[0] || "";
     const chainId = await window.ethereum.request({ method: "eth_chainId" });
     if (chainId !== CONFIG.bscChainIdHex) {
-      await window.ethereum.request({
-        method: "wallet_switchEthereumChain",
-        params: [{ chainId: CONFIG.bscChainIdHex }],
-      });
+      try {
+        await window.ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: CONFIG.bscChainIdHex }],
+        });
+      } catch (switchError) {
+        if (switchError.code !== 4902) throw switchError;
+        await window.ethereum.request({
+          method: "wallet_addEthereumChain",
+          params: [{
+            chainId: CONFIG.bscChainIdHex,
+            chainName: "BNB Smart Chain",
+            nativeCurrency: { name: "BNB", symbol: "BNB", decimals: 18 },
+            rpcUrls: ["https://bsc-dataseed.binance.org/"],
+            blockExplorerUrls: ["https://bscscan.com/"],
+          }],
+        });
+      }
     }
     addLog(`钱包已连接：${shortAddress(state.account)}`);
     await refreshBalance();
@@ -177,18 +215,21 @@ async function connectWallet() {
 }
 
 async function refreshBalance() {
-  if (!state.account || !window.ethereum || CONFIG.kofTokenAddress === "0x0000000000000000000000000000000000000000") {
-    $("balanceLabel").textContent = "余额 -- $KOF";
+  if (!state.account || !window.ethereum || isZeroAddress(CONFIG.kofTokenAddress)) {
+    $("balanceLabel").textContent = `余额 -- ${CONFIG.tokenSymbol}`;
     return;
   }
   try {
-    const data = `${ERC20_ABI[0]}${state.account.slice(2).padStart(64, "0")}`;
+    const decimalsHex = await window.ethereum.request({
+      method: "eth_call",
+      params: [{ to: CONFIG.kofTokenAddress, data: tokenCallData(ERC20_CALLS.decimals) }, "latest"],
+    });
+    const decimals = Number(BigInt(decimalsHex || "0x12"));
     const result = await window.ethereum.request({
       method: "eth_call",
-      params: [{ to: CONFIG.kofTokenAddress, data }, "latest"],
+      params: [{ to: CONFIG.kofTokenAddress, data: tokenCallData(ERC20_CALLS.balanceOf, state.account) }, "latest"],
     });
-    const balance = Number(BigInt(result) / 10n ** 18n);
-    $("balanceLabel").textContent = `余额 ${fmt(balance)} $KOF`;
+    $("balanceLabel").textContent = `余额 ${formatTokenAmount(result, decimals)} ${CONFIG.tokenSymbol}`;
   } catch {
     $("balanceLabel").textContent = "余额读取失败";
   }
