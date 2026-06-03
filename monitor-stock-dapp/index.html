@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>监控股 · 华尔街链上哨兵</title>
+  <title>股市天眼 · 华尔街链上哨兵</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -34,12 +34,12 @@
       font-family: "Inter", "Noto Sans SC", sans-serif;
       color: var(--text);
       background:
-        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-        linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-        radial-gradient(circle at 78% 4%, rgba(255, 77, 95, 0.18), transparent 28%),
-        radial-gradient(circle at 8% 16%, rgba(46, 229, 157, 0.14), transparent 30%),
-        #07080c;
-      background-size: 46px 46px, 46px 46px, auto, auto, auto;
+        linear-gradient(128deg, transparent 0 13%, rgba(240, 185, 11, 0.12) 13.1%, transparent 13.45% 100%),
+        linear-gradient(32deg, transparent 0 72%, rgba(240, 185, 11, 0.1) 72.1%, transparent 72.4% 100%),
+        linear-gradient(90deg, rgba(240, 185, 11, 0.055) 1px, transparent 1px),
+        linear-gradient(rgba(240, 185, 11, 0.045) 1px, transparent 1px),
+        linear-gradient(135deg, #050608 0%, #0b0d12 46%, #090805 100%);
+      background-size: auto, auto, 52px 52px, 52px 52px, auto;
       overflow-x: hidden;
     }
 
@@ -49,12 +49,37 @@
       position: fixed;
       inset: 0;
       pointer-events: none;
-      opacity: 0.32;
+      opacity: 0.72;
       z-index: 0;
       background:
-        linear-gradient(140deg, transparent 0 18%, rgba(46, 229, 157, 0.44) 18.2%, transparent 18.6% 100%),
-        linear-gradient(155deg, transparent 0 46%, rgba(255, 77, 95, 0.34) 46.2%, transparent 46.6% 100%),
-        linear-gradient(24deg, transparent 0 70%, rgba(243, 196, 90, 0.32) 70.2%, transparent 70.6% 100%);
+        linear-gradient(135deg, transparent 0 17%, rgba(240, 185, 11, 0.22) 17.2%, transparent 17.6% 100%),
+        linear-gradient(28deg, transparent 0 62%, rgba(240, 185, 11, 0.16) 62.2%, transparent 62.5% 100%),
+        linear-gradient(90deg, transparent 0 49%, rgba(240, 185, 11, 0.08) 49.2%, transparent 49.6% 100%),
+        linear-gradient(45deg, transparent 0 38%, rgba(240, 185, 11, 0.08) 38.1%, transparent 38.45% 100%),
+        linear-gradient(315deg, transparent 0 78%, rgba(240, 185, 11, 0.08) 78.1%, transparent 78.45% 100%);
+    }
+
+    .market-ribbon::before,
+    .market-ribbon::after {
+      content: "";
+      position: absolute;
+      width: 180px;
+      height: 180px;
+      border: 1px solid rgba(240, 185, 11, 0.16);
+      transform: rotate(45deg);
+      box-shadow: 0 0 34px rgba(240, 185, 11, 0.08);
+    }
+
+    .market-ribbon::before {
+      top: 96px;
+      right: 9%;
+    }
+
+    .market-ribbon::after {
+      left: 7%;
+      bottom: 110px;
+      width: 132px;
+      height: 132px;
     }
 
     .wrap {
@@ -582,7 +607,7 @@
     <nav class="nav">
       <div class="brand">
         <div class="brand-mark"><i class="fa-solid fa-tower-broadcast"></i></div>
-        <div>监控股<small>链上聪明钱 + 美股实况</small></div>
+        <div>股市天眼<small>链上聪明钱 + 美股实况</small></div>
       </div>
       <div class="nav-actions">
         <a class="social-btn" href="https://t.me/jiankonggu666" target="_blank" rel="noreferrer" title="Telegram" aria-label="Telegram">
@@ -603,10 +628,10 @@
 
     <header class="hero">
       <div>
-        <div class="eyebrow"><i class="fa-solid fa-satellite-dish"></i> 监控股 —— 链上聪明钱 + 美股实况，一屏尽在掌握</div>
-        <h1>监控股 · 华尔街链上哨兵</h1>
+        <div class="eyebrow"><i class="fa-solid fa-satellite-dish"></i> 股市天眼 —— 链上聪明钱 + 美股实况，一屏尽在掌握</div>
+        <h1>股市天眼 · 华尔街链上哨兵</h1>
         <p class="lead">BSC链上聪明钱实时追踪 × 美股深度行情分析。监控聪明地址，盯住美股脉搏 —— 你的链上股哨。</p>
-        <p class="unlock-line">支付 <strong>500,000 枚监控股</strong> 代币，永久解锁全部功能。</p>
+        <p class="unlock-line">支付 <strong>500,000 枚股市天眼</strong> 代币，永久解锁全部功能。</p>
         <div class="hero-actions">
           <button id="heroConnectBtn"><i class="fa-solid fa-plug"></i> 连接钱包</button>
           <button id="heroUnlockBtn" class="button-secondary"><i class="fa-solid fa-unlock-keyhole"></i> 解锁高级版（50万代币）</button>
@@ -656,7 +681,7 @@
       <div class="section-head">
         <div>
           <h2>核心功能</h2>
-          <p>监控股将链上聪明地址监控与传统美股分析融合进同一个DApp。</p>
+          <p>股市天眼将链上聪明地址监控与传统美股分析融合进同一个DApp。</p>
         </div>
       </div>
       <div class="grid-4">
@@ -702,23 +727,23 @@
     <section class="section" id="unlock">
       <div class="card unlock-box">
         <div>
-          <h2>如何成为监控股会员？</h2>
-          <p class="muted">向项目钱包质押 50 万枚监控股，获得会员凭证。支付成功后，所有高级功能永久开放。</p>
+          <h2>如何成为股市天眼会员？</h2>
+          <p class="muted">向项目钱包质押 50 万枚股市天眼，获得会员凭证。支付成功后，所有高级功能永久开放。</p>
           <div class="steps">
             <div class="step"><strong>1.</strong> 连接钱包，支持BSC兼容钱包</div>
-            <div class="step"><strong>2.</strong> 钱包余额 ≥ 500,000 枚监控股</div>
+            <div class="step"><strong>2.</strong> 钱包余额 ≥ 500,000 枚股市天眼</div>
             <div class="step"><strong>3.</strong> 点击解锁并确认支付交易</div>
             <div class="step"><strong>4.</strong> 获得会员凭证，永久使用</div>
           </div>
         </div>
         <div class="pay-panel">
-          <div id="unlockStatus" class="locked-status">🔒 您尚未解锁监控股 —— 连接钱包并支付50万代币，立即透视聪明钱+美股数据。</div>
+          <div id="unlockStatus" class="locked-status">🔒 您尚未解锁股市天眼 —— 连接钱包并支付50万代币，立即透视聪明钱+美股数据。</div>
           <div class="stat-line"><span>钱包</span><strong id="walletAddress">未连接</strong></div>
-          <div class="stat-line"><span>监控股余额</span><strong id="monitorBalance">--</strong></div>
-          <div class="stat-line"><span>解锁价格</span><strong>500,000 监控股</strong></div>
+          <div class="stat-line"><span>股市天眼余额</span><strong id="monitorBalance">--</strong></div>
+          <div class="stat-line"><span>解锁价格</span><strong>500,000 股市天眼</strong></div>
           <div class="stat-line"><span>合约地址</span><strong id="contractAddress">待配置</strong></div>
           <div class="stat-line"><span>质押接收地址</span><strong id="treasuryAddress">待配置</strong></div>
-          <button id="unlockBtn"><i class="fa-solid fa-unlock"></i> 解锁监控股</button>
+          <button id="unlockBtn"><i class="fa-solid fa-unlock"></i> 解锁股市天眼</button>
         </div>
       </div>
     </section>
@@ -756,7 +781,7 @@
     <section class="section">
       <div class="section-head"><h2>项目路线图</h2></div>
       <div class="card roadmap">
-        <div class="road-item"><strong>Q2 2026</strong><span>监控股 MVP 上线，聪明地址基础监控 + 美股百科库</span><span class="tag">已完成</span></div>
+        <div class="road-item"><strong>Q2 2026</strong><span>股市天眼 MVP 上线，聪明地址基础监控 + 美股百科库</span><span class="tag">已完成</span></div>
         <div class="road-item"><strong>Q3 2026</strong><span>接入实时美股行情 + K线图表，代币支付解锁系统</span><span class="tag">进行中</span></div>
         <div class="road-item"><strong>Q4 2026</strong><span>聪明钱联动信号引擎（自动跟单提示）</span><span class="tag">规划</span></div>
         <div class="road-item"><strong>Q1 2027</strong><span>多链支持（Arbitrum / Polygon 美股代币）+ 情绪AI分析</span><span class="tag">规划</span></div>
@@ -776,7 +801,7 @@
 
     <footer class="footer">
       <div class="footer-inner">
-        <div><strong>监控股 —— 让链上股民先富起来</strong><br>连接钱包，支付50万代币，加入聪明钱跟单军团。</div>
+        <div><strong>股市天眼 —— 让链上股民先富起来</strong><br>连接钱包，支付50万代币，加入聪明钱跟单军团。</div>
         <div class="footer-links">
           <a href="#">白皮书 / Docs</a>
           <a href="#unlock">智能合约地址</a>
@@ -884,9 +909,9 @@
         }
 
         if (isUnlocked(account)) {
-          setStatus("✅ 您已解锁监控股高级版，全部功能永久开放。", true);
+          setStatus("✅ 您已解锁股市天眼高级版，全部功能永久开放。", true);
         } else {
-          setStatus("🔒 您尚未解锁监控股 —— 连接钱包并支付50万代币，立即透视聪明钱+美股数据。");
+          setStatus("🔒 您尚未解锁股市天眼 —— 连接钱包并支付50万代币，立即透视聪明钱+美股数据。");
         }
       } catch (error) {
         setStatus(error.message || "钱包连接失败，请重试。");
@@ -900,7 +925,7 @@
       if (!tokenContract || !account) return;
       const raw = await tokenContract.balanceOf(account);
       const formatted = Number(ethers.utils.formatUnits(raw, tokenDecimals));
-      monitorBalance.textContent = `${formatted.toLocaleString(undefined, { maximumFractionDigits: 2 })} 监控股`;
+      monitorBalance.textContent = `${formatted.toLocaleString(undefined, { maximumFractionDigits: 2 })} 股市天眼`;
     }
 
     async function unlockMembership() {
@@ -909,7 +934,7 @@
         if (!account) return;
       }
       if (!ethers.utils.isAddress(MONITOR_TOKEN_ADDRESS) || !ethers.utils.isAddress(TREASURY_ADDRESS)) {
-        setStatus("⚠️ 监控股代币合约或项目钱包地址配置无效，暂时不能发起50万代币质押。");
+        setStatus("⚠️ 股市天眼代币合约或项目钱包地址配置无效，暂时不能发起50万代币质押。");
         return;
       }
       unlockBtn.disabled = true;
@@ -918,16 +943,16 @@
         const amount = ethers.utils.parseUnits(String(UNLOCK_PRICE), tokenDecimals);
         const balance = await tokenContract.balanceOf(account);
         if (balance.lt(amount)) {
-          setStatus("余额不足：需要至少 500,000 枚监控股才能解锁高级版。");
+          setStatus("余额不足：需要至少 500,000 枚股市天眼才能解锁高级版。");
           return;
         }
-        setStatus("交易确认中，请在钱包里确认质押 500,000 枚监控股。");
+        setStatus("交易确认中，请在钱包里确认质押 500,000 枚股市天眼。");
         const tx = await tokenContract.transfer(TREASURY_ADDRESS, amount);
         setStatus(`交易已提交：${tx.hash.slice(0, 10)}...，等待链上确认。`);
         await tx.wait();
         localStorage.setItem(storageKey(account), "1");
         await refreshBalance();
-        setStatus("✅ 质押成功，您已永久解锁监控股全部功能。", true);
+        setStatus("✅ 质押成功，您已永久解锁股市天眼全部功能。", true);
       } catch (error) {
         setStatus(error.message || "解锁失败，请检查钱包交易。");
       } finally {
@@ -948,3 +973,4 @@
   </script>
 </body>
 </html>
+
