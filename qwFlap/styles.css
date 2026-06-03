@@ -161,12 +161,33 @@ p {
 
 .metric,
 .champion,
-.wallet-btn {
+.wallet-btn,
+.social-link {
   min-height: 52px;
   border-radius: 6px;
   border: 1px solid rgba(244, 199, 94, 0.22);
   background: rgba(8, 7, 13, 0.62);
   padding: 8px 12px;
+}
+
+.social-link {
+  width: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.social-link:hover {
+  transform: translateY(-1px);
+  border-color: rgba(244, 199, 94, 0.56);
+  background: rgba(244, 199, 94, 0.1);
+}
+
+.social-link svg {
+  width: 23px;
+  height: 23px;
+  display: block;
 }
 
 .metric strong,
@@ -734,5 +755,9 @@ p {
   .top-stats {
     display: grid;
     grid-template-columns: 1fr;
+  }
+
+  .social-link {
+    width: 100%;
   }
 }
