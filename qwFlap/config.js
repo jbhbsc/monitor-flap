@@ -1,5 +1,5 @@
 window.QWFLAP_CONFIG = {
-  kofTokenAddress: "0x2a3a0574c4ad9625d93786205cbabb715ad27777",
+  kofTokenAddress: "$KOF",
   tokenSymbol: "$KOF",
 
   // 部署 QwFlapArena 后，把对战合约地址填到这里。
