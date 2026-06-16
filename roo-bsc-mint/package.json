@@ -1,0 +1,14 @@
+{
+  "name": "roo-bsc-mint",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Standalone BSC token module for roo",
+  "scripts": {
+    "start": "node server.js",
+    "deploy:token": "node scripts/deploy-token.js",
+    "check:rpc": "node scripts/check-rpc.js"
+  },
+  "dependencies": {
+    "ethers": "^6.13.5"
+  }
+}
