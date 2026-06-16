@@ -6,6 +6,7 @@ const DEFAULT_SEND_TOKEN = "BNB";
 // Deploy contracts/BatchBnbDistributor.sol once, then paste the deployed
 // address here. The page does not expose this address field to end users.
 const BATCH_DISTRIBUTOR_ADDRESS = "0xEE2e4958449F89df6A7BaD22a98Cc59e20AE256b";
+const COLLECT_SUBMIT_CONCURRENCY = 16;
 
 const ERC20_ABI = [
   "function name() view returns (string)",
@@ -57,6 +58,31 @@ function log(target, message) {
   const time = new Date().toLocaleTimeString();
   box.textContent += `[${time}] ${message}\n`;
   box.scrollTop = box.scrollHeight;
+}
+
+async function mapWithConcurrency(items, limit, handler) {
+  const results = new Array(items.length);
+  let nextIndex = 0;
+  const workerCount = Math.min(limit, items.length);
+
+  async function worker() {
+    while (nextIndex < items.length) {
+      const index = nextIndex;
+      nextIndex += 1;
+      try {
+        results[index] = { ok: true, value: await handler(items[index], index) };
+      } catch (error) {
+        results[index] = { ok: false, error };
+      }
+    }
+  }
+
+  await Promise.all(Array.from({ length: workerCount }, worker));
+  return results;
+}
+
+function errorMessage(error) {
+  return error?.reason || error?.shortMessage || error?.message || String(error);
 }
 
 function escapeHtml(value) {
@@ -292,41 +318,68 @@ async function batchCollect() {
 
   if (!ethers.isAddress(target)) throw new Error("Invalid collect target address.");
   log("#collectLog", `Collecting from ${wallets.length} wallets -> ${target}`);
+  log("#collectLog", `Parallel submit limit: ${COLLECT_SUBMIT_CONCURRENCY}`);
+
+  const waitForConfirmations = async (submitted) => {
+    const pending = submitted
+      .filter((item) => item?.tx)
+      .map(async (item) => {
+        try {
+          await item.tx.wait();
+          log("#collectLog", `Confirmed ${item.index + 1}/${wallets.length}: ${item.tx.hash}`);
+          return true;
+        } catch (error) {
+          log("#collectLog", `Confirm failed ${item.index + 1}/${wallets.length}: ${errorMessage(error)}`);
+          return false;
+        }
+      });
+
+    const confirmations = await Promise.all(pending);
+    return confirmations.filter(Boolean).length;
+  };
 
   if (tokenAddress) {
     const meta = await readToken(tokenAddress, provider);
     log("#collectLog", `Collect token: ${meta.name || meta.symbol} (${meta.symbol})`);
-    for (const [index, wallet] of wallets.entries()) {
+    const results = await mapWithConcurrency(wallets, COLLECT_SUBMIT_CONCURRENCY, async (wallet, index) => {
       const token = meta.token.connect(wallet);
       const balance = await token.balanceOf(wallet.address);
       if (balance === 0n) {
         log("#collectLog", `${index + 1}/${wallets.length} ${wallet.address}: zero balance, skipped`);
-        continue;
+        return null;
       }
       log("#collectLog", `${index + 1}/${wallets.length}: collect ${ethers.formatUnits(balance, meta.decimals)} ${meta.symbol}`);
       const tx = await token.transfer(target, balance);
-      log("#collectLog", `Submitted: ${tx.hash}`);
-      await tx.wait();
-      log("#collectLog", `Confirmed: ${tx.hash}`);
-    }
+      log("#collectLog", `Submitted ${index + 1}/${wallets.length}: ${tx.hash}`);
+      return { index, tx };
+    });
+    results.forEach((result, index) => {
+      if (!result.ok) log("#collectLog", `Submit failed ${index + 1}/${wallets.length}: ${errorMessage(result.error)}`);
+    });
+    const confirmed = await waitForConfirmations(results.filter((result) => result.ok).map((result) => result.value));
+    log("#collectLog", `Confirmed ${confirmed}/${results.filter((result) => result.ok && result.value?.tx).length} submitted token transactions.`);
   } else {
     const keep = ethers.parseEther(leaveBnb);
-    for (const [index, wallet] of wallets.entries()) {
+    const feeData = await provider.getFeeData();
+    const gasPrice = feeData.gasPrice || ethers.parseUnits("3", "gwei");
+    const gasCost = gasPrice * 21000n;
+    const results = await mapWithConcurrency(wallets, COLLECT_SUBMIT_CONCURRENCY, async (wallet, index) => {
       const balance = await provider.getBalance(wallet.address);
-      const feeData = await provider.getFeeData();
-      const gasPrice = feeData.gasPrice || ethers.parseUnits("3", "gwei");
-      const gasCost = gasPrice * 21000n;
       const transferable = balance - keep - gasCost;
       if (transferable <= 0n) {
         log("#collectLog", `${index + 1}/${wallets.length} ${wallet.address}: insufficient balance, skipped`);
-        continue;
+        return null;
       }
       log("#collectLog", `${index + 1}/${wallets.length}: collect ${ethers.formatEther(transferable)} BNB`);
       const tx = await wallet.sendTransaction({ to: target, value: transferable, gasLimit: 21000n, gasPrice });
-      log("#collectLog", `Submitted: ${tx.hash}`);
-      await tx.wait();
-      log("#collectLog", `Confirmed: ${tx.hash}`);
-    }
+      log("#collectLog", `Submitted ${index + 1}/${wallets.length}: ${tx.hash}`);
+      return { index, tx };
+    });
+    results.forEach((result, index) => {
+      if (!result.ok) log("#collectLog", `Submit failed ${index + 1}/${wallets.length}: ${errorMessage(result.error)}`);
+    });
+    const confirmed = await waitForConfirmations(results.filter((result) => result.ok).map((result) => result.value));
+    log("#collectLog", `Confirmed ${confirmed}/${results.filter((result) => result.ok && result.value?.tx).length} submitted BNB transactions.`);
   }
 
   log("#collectLog", "Collect complete.");
