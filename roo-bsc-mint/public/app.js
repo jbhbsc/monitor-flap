@@ -155,7 +155,7 @@ async function refreshData() {
   setText("#tokenNameLabel", tokenName);
   setVisible("#tokenNameRow", true);
   setText("#tokenAddressLabel", shortAddress(config.tokenAddress));
-  setVisible("#tokenContractRow", true);
+  setVisible("#tokenContractRow", false);
   setText("#totalDividendsLabel", formatBnb(dividendReserve));
   setText("#tradingStatusLabel", tradingEnabled ? "已开启" : "未开启");
 

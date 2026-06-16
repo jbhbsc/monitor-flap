@@ -1,7 +1,7 @@
 window.TOKEN_CONFIG = {
   chainId: 56,
   chainName: "BNB Smart Chain",
-  tokenAddress: "0x67d8882166D669B8ae8De9a98A53b10cefAC1090",
+  tokenAddress: "",
   paymentReceiver: "0xe0591EF1783a61A7153E9FC367B9C526D80b2463",
   platformMarketingWallet: "0xe0591EF1783a61A7153E9FC367B9C526D80b2463",
   dividendPoolWallet: "0xe0591EF1783a61A7153E9FC367B9C526D80b2463",
