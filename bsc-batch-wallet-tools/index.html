@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BSC 批量钱包工具</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">BSC</div>
+        <button class="brand-menu" type="button">批量工具</button>
+      </div>
+      <nav class="nav-links" aria-label="主导航">
+        <a class="active" href="#">钱包管理</a>
+      </nav>
+      <div class="top-actions">
+        <span class="globe">●</span>
+        <button class="chain-pill" type="button" id="switchChainBtn">
+          <span class="bnb-dot">B</span>
+          BSC
+        </button>
+        <span class="balance-pill" id="balancePill">0 BNB</span>
+        <button class="wallet-pill" type="button" id="connectBtn">
+          <span class="brand-mini">B</span>
+          <span id="walletText">连接钱包</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="side-card" aria-label="批量工具菜单">
+        <button class="side-item active" type="button" data-view="wallets">批量生成钱包</button>
+        <button class="side-item" type="button" data-view="send">批量发送代币</button>
+        <button class="side-item" type="button" data-view="collect">批量归集</button>
+      </aside>
+
+      <section class="panel active" id="view-wallets">
+        <div class="compact-row">
+          <input id="walletCount" type="number" min="1" max="500" placeholder="输入要创建的钱包数量" />
+          <button type="button" id="createWalletsBtn">创建</button>
+          <button type="button" id="downloadWalletsBtn">下载</button>
+        </div>
+        <p class="warn">请断网生成钱包，并妥善离线保存私钥。</p>
+        <div class="result-toolbar">
+          <span id="walletResultHint">尚未生成钱包</span>
+          <button type="button" id="clearWalletsBtn">清空</button>
+        </div>
+        <div class="wallet-list" id="walletList"></div>
+      </section>
+
+      <section class="panel" id="view-send">
+        <div class="send-card-title">批量发送代币</div>
+        <div class="form-grid">
+          <label>
+            代币合约
+            <input id="sendToken" type="text" value="BNB" placeholder="BNB 或 0x... BEP20 合约地址" />
+          </label>
+          <label>
+            发送账户私钥（可选）
+            <input id="sendPrivateKey" type="password" placeholder="留空则使用已连接钱包发送" />
+          </label>
+          <label>
+            自动添加数量
+            <input id="autoAmount" type="number" min="0" step="any" placeholder="每个地址发送数量" />
+          </label>
+          <label>
+            批量处理
+            <button class="field-button" type="button" id="autoAmountBtn">自动添加数量</button>
+          </label>
+          <label class="wide">
+            接收地址和数量
+            <textarea id="sendRows" rows="8" placeholder="每行一条：地址,数量&#10;也可以先只粘贴地址，再点自动添加数量&#10;0x123...,10&#10;0x456...,25.5"></textarea>
+          </label>
+        </div>
+        <div class="action-row">
+          <button type="button" id="loadTokenBtn">读取代币信息</button>
+          <button type="button" id="batchSendBtn">开始批量发送</button>
+          <span id="sendTokenInfo">未读取代币</span>
+        </div>
+        <div class="log-box" id="sendLog"></div>
+      </section>
+
+      <section class="panel" id="view-collect">
+        <div class="form-grid">
+          <label>
+            归集目标地址
+            <input id="collectTarget" type="text" placeholder="0x... 收款地址" />
+          </label>
+          <label>
+            代币合约（留空归集 BNB）
+            <input id="collectToken" type="text" placeholder="0x... BEP20 合约地址" />
+          </label>
+          <label>
+            BNB 保留数量
+            <input id="leaveBnb" type="number" step="0.000001" value="0.0008" />
+          </label>
+          <label class="wide">
+            钱包私钥列表
+            <textarea id="collectKeys" rows="8" placeholder="每行一个私钥。归集代币时，每个钱包需要预留 BNB 作为 gas。"></textarea>
+          </label>
+        </div>
+        <div class="action-row">
+          <button type="button" id="batchCollectBtn">开始批量归集</button>
+          <button type="button" id="fillGeneratedKeysBtn">填入已生成私钥</button>
+          <span>RPC：BSC Mainnet</span>
+        </div>
+        <div class="log-box" id="collectLog"></div>
+      </section>
+    </main>
+
+    <script src="./vendor/ethers.umd.min.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

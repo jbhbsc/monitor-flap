@@ -1,0 +1,394 @@
+:root {
+  --line: #e5e7eb;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --orange: #ff9f37;
+  --purple: #2f1f84;
+  --panel: #ffffff;
+  --soft: #f8fafc;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--text);
+  font-family: Arial, "Microsoft YaHei", sans-serif;
+  background: linear-gradient(118deg, #e1fbff 0%, #f1eefc 100%);
+  letter-spacing: 0;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.topbar {
+  height: 58px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 0 10px 0 14px;
+  background: rgba(255, 255, 255, 0.92);
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.08);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 126px;
+}
+
+.brand-mark {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  font-size: 27px;
+}
+
+.brand-menu,
+.nav-links a,
+.chain-pill,
+.balance-pill,
+.wallet-pill {
+  color: var(--text);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.brand-menu {
+  padding: 0;
+  color: var(--purple);
+  border: 0;
+  background: transparent;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex: 1;
+  min-width: 0;
+}
+
+.nav-links a {
+  font-size: 15px;
+}
+
+.nav-links .active {
+  color: var(--purple);
+}
+
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.globe {
+  color: #9ca3af;
+  font-size: 25px;
+}
+
+.chain-pill,
+.wallet-pill,
+.balance-pill {
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 13px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
+  font-weight: 700;
+}
+
+.bnb-dot {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  color: #f3ba2f;
+  background: #111827;
+  border-radius: 50%;
+  font-size: 11px;
+}
+
+.brand-mini {
+  font-size: 21px;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: 300px minmax(420px, 950px);
+  align-items: start;
+  gap: 118px;
+  padding: 28px 0 60px 66px;
+}
+
+.side-card {
+  min-height: 166px;
+  padding: 13px 0;
+  border: 1px solid #dedede;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+}
+
+.side-item {
+  width: 100%;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  padding: 0 21px;
+  color: var(--orange);
+  text-align: left;
+  border: 0;
+  background: transparent;
+  font-size: 16px;
+}
+
+.side-item.active {
+  color: #ff7f0f;
+  font-weight: 700;
+}
+
+.panel {
+  display: none;
+  width: 100%;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.panel.active {
+  display: block;
+}
+
+.compact-row {
+  display: grid;
+  grid-template-columns: 1fr 88px 88px;
+  gap: 0;
+}
+
+.compact-row input {
+  min-width: 0;
+  border-radius: 8px 0 0 8px;
+}
+
+.compact-row button {
+  border-left: 0;
+  border-radius: 0;
+}
+
+.compact-row button:last-child {
+  border-radius: 0 6px 6px 0;
+}
+
+input,
+textarea {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  background: #fff;
+  color: var(--text);
+  outline: none;
+}
+
+input {
+  height: 32px;
+  padding: 0 9px;
+}
+
+textarea {
+  resize: vertical;
+  padding: 9px;
+  line-height: 1.55;
+}
+
+input:focus,
+textarea:focus {
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.2);
+}
+
+button {
+  min-height: 32px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #111827;
+  border-radius: 7px;
+}
+
+button:hover {
+  background: #f8fafc;
+}
+
+.warn {
+  margin: 22px 0 18px;
+  color: red;
+  font-weight: 700;
+}
+
+.result-toolbar,
+.action-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.wallet-list {
+  display: grid;
+  gap: 14px;
+  max-height: 480px;
+  overflow: auto;
+}
+
+.wallet-group {
+  border-top: 1px solid #2ed0db;
+  background: #f9feff;
+}
+
+.wallet-row {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr) 80px;
+  min-height: 36px;
+  border-bottom: 1px solid #2ed0db;
+}
+
+.wallet-label,
+.wallet-value {
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  font-size: 14px;
+}
+
+.wallet-label {
+  color: #20bfd0;
+}
+
+.wallet-value {
+  color: #24008a;
+  word-break: break-all;
+}
+
+.copy-btn {
+  min-height: 36px;
+  border: 0;
+  border-radius: 0;
+  background: #fff09a;
+  color: #24008a;
+  font-weight: 700;
+}
+
+.copy-btn:hover {
+  background: #ffe77a;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.form-grid label {
+  display: grid;
+  gap: 7px;
+  color: #374151;
+  font-size: 14px;
+}
+
+.form-grid .wide {
+  grid-column: 1 / -1;
+}
+
+.log-box {
+  min-height: 180px;
+  max-height: 360px;
+  overflow: auto;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #0f172a;
+  color: #d1fae5;
+  font: 13px/1.65 Consolas, "Courier New", monospace;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 960px) {
+  .topbar {
+    height: auto;
+    min-height: 58px;
+    flex-wrap: wrap;
+    padding: 10px 12px;
+    gap: 12px;
+  }
+
+  .nav-links {
+    order: 3;
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .top-actions {
+    margin-left: auto;
+  }
+
+  .workspace {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding: 18px 14px 36px;
+  }
+
+  .side-card {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    overflow: hidden;
+  }
+
+  .side-item {
+    justify-content: center;
+    padding: 0 8px;
+    text-align: center;
+    font-size: 14px;
+  }
+
+  .compact-row,
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .compact-row input,
+  .compact-row button,
+  .compact-row button:last-child {
+    border-radius: 7px;
+    border-left: 1px solid #d1d5db;
+  }
+
+  .wallet-row {
+    grid-template-columns: 70px minmax(0, 1fr) 64px;
+  }
+
+  .wallet-label,
+  .wallet-value {
+    padding: 0 8px;
+    font-size: 13px;
+  }
+}
