@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>世界杯智能预测面板</title>
+  <style>
+    :root {
+      --bg: #f5f7fa;
+      --panel: #ffffff;
+      --ink: #17202a;
+      --muted: #657184;
+      --line: #d9dee7;
+      --green: #147a48;
+      --red: #b3261e;
+      --blue: #2457c5;
+      --amber: #9a6500;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Arial, "Microsoft YaHei", sans-serif;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(255, 255, 255, 0.96);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(10px);
+    }
+
+    .bar, main {
+      max-width: 1320px;
+      margin: 0 auto;
+    }
+
+    .bar {
+      padding: 14px 18px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.2;
+    }
+
+    main {
+      padding: 18px;
+    }
+
+    .wallet, .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .wallet { justify-content: flex-end; }
+
+    button, input, select, textarea {
+      font: inherit;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+
+    button {
+      min-height: 36px;
+      padding: 0 12px;
+      background: #17202a;
+      color: white;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    button.secondary {
+      background: white;
+      color: var(--ink);
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    input, select {
+      width: 100%;
+      min-height: 34px;
+      padding: 0 8px;
+      background: white;
+      color: var(--ink);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 150px;
+      resize: vertical;
+      padding: 10px;
+      font: 12px Consolas, monospace;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 292px 1fr;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .panel, .match {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .panel { padding: 14px; }
+    .panel h2 {
+      margin: 0 0 12px;
+      font-size: 16px;
+    }
+
+    .controls {
+      display: grid;
+      gap: 10px;
+    }
+
+    label {
+      display: grid;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .matches {
+      display: grid;
+      gap: 14px;
+    }
+
+    .match {
+      overflow: hidden;
+    }
+
+    .match-head {
+      padding: 12px 14px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      border-bottom: 1px solid var(--line);
+      align-items: center;
+    }
+
+    .match-title {
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 0 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      min-width: 1180px;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    th, td {
+      padding: 8px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: middle;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    th {
+      background: #fbfcfe;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .good { color: var(--green); font-weight: 800; }
+    .bad { color: var(--red); font-weight: 800; }
+    .warn { color: var(--amber); font-weight: 800; }
+    .blue { color: var(--blue); font-weight: 800; }
+
+    .summary {
+      padding: 11px 14px;
+      border-top: 1px solid var(--line);
+      display: grid;
+      gap: 8px;
+      background: #fbfcfe;
+    }
+
+    .summary-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .status, .small {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .small {
+      font-weight: 400;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 860px) {
+      .bar, .match-head { grid-template-columns: 1fr; }
+      .wallet { justify-content: flex-start; }
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="bar">
+      <h1>世界杯智能预测面板</h1>
+      <div class="wallet">
+        <span id="walletStatus" class="status">钱包未连接</span>
+        <button id="connectWallet">连接 MetaMask</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="grid">
+      <aside class="panel">
+        <h2>资金与模型</h2>
+        <div class="controls">
+          <label>本金 USDT
+            <input id="bankroll" type="number" min="1" step="1" value="100">
+          </label>
+          <label>单场最大下注 USDT
+            <input id="maxStake" type="number" min="1" step="1" value="5">
+          </label>
+          <label>最小优势
+            <input id="minEdge" type="number" min="0" max="0.5" step="0.01" value="0.03">
+          </label>
+          <label>Kelly 系数
+            <input id="kellyFraction" type="number" min="0.01" max="1" step="0.01" value="0.25">
+          </label>
+          <label>因子强度
+            <input id="factorStrength" type="number" min="0" max="0.25" step="0.01" value="0.08">
+          </label>
+          <label>链
+            <select id="chainSelect">
+              <option value="0x38">BNB Chain</option>
+              <option value="0x89">Polygon</option>
+              <option value="0x1">Ethereum</option>
+              <option value="0xa4b1">Arbitrum One</option>
+              <option value="0xa">Optimism</option>
+              <option value="0x2105">Base</option>
+            </select>
+          </label>
+          <div class="actions">
+            <button id="recalc">重新分析</button>
+            <button id="exportJson" class="secondary">复制计划</button>
+          </div>
+          <div id="actionStatus" class="status"></div>
+          <p class="small">
+            因子范围建议 -5 到 +5。近期状态、战术匹配、伤病影响、休息恢复、战意越高，对该结果越有利。页面不会读取私钥。
+          </p>
+        </div>
+      </aside>
+
+      <section class="matches" id="matches"></section>
+    </div>
+
+    <section class="panel" style="margin-top:14px;">
+      <h2>导出结果</h2>
+      <textarea id="output" readonly></textarea>
+    </section>
+  </main>
+
+  <script>
+    const TOKEN_ADDRESS = "";
+    const ERC20_ABI = [
+      "0x70a08231000000000000000000000000", // balanceOf(address)
+      "0x313ce567", // decimals()
+      "0x95d89b41" // symbol()
+    ];
+    const boardNames = ["板块A", "板块B", "板块C"];
+    const factorNames = [
+      ["form", "状态"],
+      ["tactic", "战术"],
+      ["injury", "伤病"],
+      ["rest", "休息"],
+      ["motivation", "战意"]
+    ];
+
+    const matches = [
+      {
+        id: "por-drc-1x2",
+        title: "Portugal vs DR Congo",
+        note: "葡萄牙纸面实力强，但热门队赔率容易被压低。",
+        outcomes: [
+          { name: "Portugal", base: 0.68, boards: [1.50, 1.47, 1.52], factors: { form: 2, tactic: 2, injury: -1, rest: 0, motivation: 1 } },
+          { name: "Draw", base: 0.20, boards: [4.60, 4.80, 4.50], factors: { form: 0, tactic: -1, injury: 0, rest: 0, motivation: 0 } },
+          { name: "DR Congo", base: 0.12, boards: [8.80, 9.50, 9.00], factors: { form: 1, tactic: -2, injury: 1, rest: 0, motivation: 2 } }
+        ]
+      },
+      {
+        id: "eng-cro-1x2",
+        title: "England vs Croatia",
+        note: "英格兰上限更高，克罗地亚大赛经验和中场控制会压低冷门风险。",
+        outcomes: [
+          { name: "England", base: 0.52, boards: [2.05, 1.98, 2.02], factors: { form: 1, tactic: 1, injury: -1, rest: 0, motivation: 1 } },
+          { name: "Draw", base: 0.27, boards: [3.25, 3.35, 3.30], factors: { form: 1, tactic: 1, injury: 0, rest: 0, motivation: 0 } },
+          { name: "Croatia", base: 0.21, boards: [4.00, 4.20, 4.10], factors: { form: 0, tactic: 1, injury: 0, rest: 0, motivation: 2 } }
+        ]
+      },
+      {
+        id: "col-uzb-1x2",
+        title: "Colombia vs Uzbekistan",
+        note: "哥伦比亚经验和对抗强度占优，乌兹别克斯坦首次世界杯的不确定性较高。",
+        outcomes: [
+          { name: "Colombia", base: 0.56, boards: [1.86, 1.82, 1.90], factors: { form: 2, tactic: 1, injury: 0, rest: 0, motivation: 1 } },
+          { name: "Draw", base: 0.26, boards: [3.45, 3.55, 3.40], factors: { form: 0, tactic: 0, injury: 0, rest: 0, motivation: 0 } },
+          { name: "Uzbekistan", base: 0.18, boards: [4.80, 4.60, 5.00], factors: { form: 1, tactic: -1, injury: 0, rest: 0, motivation: 2 } }
+        ]
+      },
+      {
+        id: "gha-pan-1x2",
+        title: "Ghana vs Panama",
+        note: "两队波动都不小，除非赔率给出明显优势，否则更适合小仓位。",
+        outcomes: [
+          { name: "Ghana", base: 0.47, boards: [2.12, 2.20, 2.08], factors: { form: 1, tactic: 1, injury: 0, rest: 0, motivation: 1 } },
+          { name: "Draw", base: 0.29, boards: [3.10, 3.25, 3.18], factors: { form: 0, tactic: 0, injury: 0, rest: 0, motivation: 0 } },
+          { name: "Panama", base: 0.24, boards: [3.90, 3.75, 4.05], factors: { form: 0, tactic: -1, injury: 0, rest: 0, motivation: 1 } }
+        ]
+      }
+    ];
+
+    let account = null;
+
+    function money(value) {
+      return Number.isFinite(value) ? value.toFixed(2) : "0.00";
+    }
+
+    function pct(value) {
+      return Number.isFinite(value) ? (value * 100).toFixed(2) + "%" : "-";
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function readConfig() {
+      return {
+        bankroll: Number(document.getElementById("bankroll").value || 0),
+        maxStake: Number(document.getElementById("maxStake").value || 0),
+        minEdge: Number(document.getElementById("minEdge").value || 0),
+        kellyFraction: Number(document.getElementById("kellyFraction").value || 0.25),
+        factorStrength: Number(document.getElementById("factorStrength").value || 0.08)
+      };
+    }
+
+    function bestBoard(outcome) {
+      let bestIndex = 0;
+      outcome.boards.forEach((odds, index) => {
+        if (Number(odds) > Number(outcome.boards[bestIndex])) bestIndex = index;
+      });
+      return { board: boardNames[bestIndex], odds: Number(outcome.boards[bestIndex]) };
+    }
+
+    function factorScore(outcome) {
+      return factorNames.reduce((sum, [key]) => sum + Number(outcome.factors[key] || 0), 0);
+    }
+
+    function adjustedProbabilities(match, config) {
+      const baseSum = match.outcomes.reduce((sum, outcome) => sum + Math.max(0.001, Number(outcome.base || 0)), 0);
+      const weighted = match.outcomes.map(outcome => {
+        const base = Math.max(0.001, Number(outcome.base || 0)) / baseSum;
+        const factorBoost = Math.exp(factorScore(outcome) * config.factorStrength);
+        return base * factorBoost;
+      });
+      const total = weighted.reduce((sum, value) => sum + value, 0);
+      return weighted.map(value => value / total);
+    }
+
+    function fractionalKelly(probability, odds, fraction) {
+      const b = odds - 1;
+      const q = 1 - probability;
+      const raw = (b * probability - q) / b;
+      return Math.max(0, raw * fraction);
+    }
+
+    function render() {
+      const root = document.getElementById("matches");
+      root.innerHTML = "";
+
+      for (const match of matches) {
+        const section = document.createElement("article");
+        section.className = "match";
+        section.innerHTML = `
+          <div class="match-head">
+            <div>
+              <div class="match-title">${match.title}</div>
+              <div class="small">${match.note}</div>
+            </div>
+            <span class="tag">${match.id}</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:120px;">结果</th>
+                  <th style="width:86px;">基础概率</th>
+                  <th style="width:84px;">状态</th>
+                  <th style="width:84px;">战术</th>
+                  <th style="width:84px;">伤病</th>
+                  <th style="width:84px;">休息</th>
+                  <th style="width:84px;">战意</th>
+                  <th style="width:92px;">板块A</th>
+                  <th style="width:92px;">板块B</th>
+                  <th style="width:92px;">板块C</th>
+                  <th class="num" style="width:96px;">最终概率</th>
+                  <th class="num" style="width:96px;">隐含概率</th>
+                  <th class="num" style="width:82px;">优势</th>
+                  <th class="num" style="width:90px;">下注</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="summary"></div>
+        `;
+
+        const tbody = section.querySelector("tbody");
+        match.outcomes.forEach((outcome, index) => {
+          const row = document.createElement("tr");
+          const factorInputs = factorNames.map(([key]) => `
+            <td><input data-match="${match.id}" data-index="${index}" data-factor="${key}" type="number" min="-5" max="5" step="1" value="${outcome.factors[key]}"></td>
+          `).join("");
+          const boardInputs = boardNames.map((board, boardIndex) => `
+            <td><input data-match="${match.id}" data-index="${index}" data-board="${boardIndex}" type="number" min="1.01" step="0.01" value="${outcome.boards[boardIndex]}"></td>
+          `).join("");
+          row.innerHTML = `
+            <td>${outcome.name}</td>
+            <td><input data-match="${match.id}" data-index="${index}" data-field="base" type="number" min="0" max="1" step="0.01" value="${outcome.base}"></td>
+            ${factorInputs}
+            ${boardInputs}
+            <td class="num blue" data-role="final"></td>
+            <td class="num" data-role="implied"></td>
+            <td class="num" data-role="edge"></td>
+            <td class="num" data-role="stake"></td>
+          `;
+          tbody.appendChild(row);
+        });
+
+        root.appendChild(section);
+      }
+
+      root.querySelectorAll("input").forEach(input => input.addEventListener("input", syncInputs));
+      analyze();
+    }
+
+    function syncInputs(event) {
+      const input = event.target;
+      const match = matches.find(item => item.id === input.dataset.match);
+      const outcome = match.outcomes[Number(input.dataset.index)];
+      if (input.dataset.field === "base") outcome.base = Number(input.value || 0);
+      if (input.dataset.factor) outcome.factors[input.dataset.factor] = clamp(Number(input.value || 0), -5, 5);
+      if (input.dataset.board !== undefined) outcome.boards[Number(input.dataset.board)] = Number(input.value || 0);
+      analyze();
+    }
+
+    function analyze() {
+      const config = readConfig();
+      const exportPlan = [];
+
+      document.querySelectorAll(".match").forEach((section, matchIndex) => {
+        const match = matches[matchIndex];
+        const rows = section.querySelectorAll("tbody tr");
+        const finalProbs = adjustedProbabilities(match, config);
+        let inverseSum = 0;
+        let bestPick = null;
+
+        match.outcomes.forEach((outcome, index) => {
+          const { board, odds } = bestBoard(outcome);
+          const finalProbability = finalProbs[index];
+          const implied = odds > 0 ? 1 / odds : 0;
+          const edge = finalProbability - implied;
+          const ev = finalProbability * (odds - 1) - (1 - finalProbability);
+          const kellyStake = config.bankroll * fractionalKelly(finalProbability, odds, config.kellyFraction);
+          const stake = edge >= config.minEdge && ev > 0 ? Math.min(config.maxStake, kellyStake) : 0;
+          inverseSum += implied;
+
+          const pick = { outcome, board, odds, finalProbability, implied, edge, ev, stake, factorScore: factorScore(outcome) };
+          if (!bestPick || ev > bestPick.ev) bestPick = pick;
+
+          const row = rows[index];
+          row.querySelector('[data-role="final"]').textContent = pct(finalProbability);
+          row.querySelector('[data-role="implied"]').textContent = pct(implied);
+          row.querySelector('[data-role="edge"]').textContent = pct(edge);
+          row.querySelector('[data-role="edge"]').className = "num " + (edge >= config.minEdge ? "good" : edge > 0 ? "warn" : "bad");
+          row.querySelector('[data-role="stake"]').textContent = money(stake);
+          row.querySelector('[data-role="stake"]').className = "num " + (stake > 0 ? "good" : "");
+
+          if (stake > 0) {
+            exportPlan.push({
+              match: match.title,
+              outcome: outcome.name,
+              board,
+              odds,
+              baseProbability: outcome.base,
+              finalProbability,
+              impliedProbability: implied,
+              edge,
+              factorScore: pick.factorScore,
+              factors: outcome.factors,
+              expectedValuePerUSDT: ev,
+              suggestedStakeUSDT: Number(stake.toFixed(2))
+            });
+          }
+        });
+
+        const arbProfit = inverseSum > 0 ? (1 / inverseSum) - 1 : 0;
+        const confidence = Math.max(0, Math.min(100, (bestPick.edge * 500) + (bestPick.factorScore * 4) + 45));
+        const pickClass = bestPick && bestPick.stake > 0 ? "good" : "warn";
+        const summary = section.querySelector(".summary");
+        summary.innerHTML = `
+          <div class="summary-row">
+            <span>推荐：<strong class="${pickClass}">${bestPick.outcome.name}</strong>，${bestPick.board}，赔率 ${bestPick.odds.toFixed(2)}，EV/1U ${bestPick.ev.toFixed(3)}，信心 ${confidence.toFixed(0)}/100</span>
+            <span>套利检测：<strong class="${arbProfit > 0 ? "good" : "bad"}">${arbProfit > 0 ? pct(arbProfit) : "无纯套利"}</strong></span>
+          </div>
+          <div class="actions">
+            <button data-bet="${match.id}">生成本场下注参数</button>
+          </div>
+        `;
+        summary.querySelector("button").addEventListener("click", () => {
+          writeOutput({
+            type: "bet-intent",
+            wallet: account,
+            match: match.title,
+            recommendation: {
+              outcome: bestPick.outcome.name,
+              board: bestPick.board,
+              odds: bestPick.odds,
+              stakeUSDT: Number(bestPick.stake.toFixed(2)),
+              finalProbability: bestPick.finalProbability,
+              edge: bestPick.edge,
+              factorScore: bestPick.factorScore,
+              expectedValuePerUSDT: bestPick.ev
+            }
+          });
+          setPanelStatus(`已生成 ${match.title} 的下注参数`);
+          document.getElementById("output").scrollIntoView({ behavior: "smooth", block: "center" });
+        });
+      });
+
+      writeOutput({ generatedAt: new Date().toISOString(), account, plan: exportPlan });
+    }
+
+    function writeOutput(data) {
+      document.getElementById("output").value = JSON.stringify(data, null, 2);
+    }
+
+    function setPanelStatus(message) {
+      const status = document.getElementById("actionStatus");
+      status.textContent = message;
+    }
+
+    function getMetaMaskProvider() {
+      if (!window.ethereum) return null;
+      if (window.ethereum.providers && Array.isArray(window.ethereum.providers)) {
+        return window.ethereum.providers.find((provider) => provider.isMetaMask) || null;
+      }
+      return window.ethereum.isMetaMask ? window.ethereum : null;
+    }
+
+    function hasTokenAddress() {
+      return /^0x[a-fA-F0-9]{40}$/.test(TOKEN_ADDRESS);
+    }
+
+    function encodeBalanceOf(address) {
+      return ERC20_ABI[0] + address.toLowerCase().replace(/^0x/, "").padStart(64, "0");
+    }
+
+    function decodeStringResult(hex) {
+      if (!hex || hex === "0x") return "";
+      const body = hex.slice(2);
+      const isDynamic = body.length >= 128 && BigInt("0x" + body.slice(0, 64)) === 32n;
+      const start = isDynamic ? 128 : 0;
+      const length = isDynamic ? Number(BigInt("0x" + body.slice(64, 128))) : 32;
+      const data = body.slice(start, start + length * 2);
+      const bytes = data.match(/.{1,2}/g)?.map((byte) => parseInt(byte, 16)).filter((byte) => byte !== 0) || [];
+      return new TextDecoder().decode(new Uint8Array(bytes));
+    }
+
+    function formatUnits(value, decimals) {
+      const negative = value < 0n;
+      const base = 10n ** BigInt(decimals);
+      const whole = (negative ? -value : value) / base;
+      const fraction = ((negative ? -value : value) % base).toString().padStart(decimals, "0").slice(0, 4).replace(/0+$/, "");
+      return `${negative ? "-" : ""}${whole}${fraction ? "." + fraction : ""}`;
+    }
+
+    async function readTokenBalance(provider, account) {
+      if (!hasTokenAddress()) return "";
+      const [balanceHex, decimalsHex, symbolHex] = await Promise.all([
+        provider.request({ method: "eth_call", params: [{ to: TOKEN_ADDRESS, data: encodeBalanceOf(account) }, "latest"] }),
+        provider.request({ method: "eth_call", params: [{ to: TOKEN_ADDRESS, data: ERC20_ABI[1] }, "latest"] }),
+        provider.request({ method: "eth_call", params: [{ to: TOKEN_ADDRESS, data: ERC20_ABI[2] }, "latest"] }).catch(() => "0x")
+      ]);
+      const balance = BigInt(balanceHex || "0x0");
+      const decimals = Number(BigInt(decimalsHex || "0x12"));
+      const symbol = decodeStringResult(symbolHex) || "TOKEN";
+      return `${formatUnits(balance, decimals)} ${symbol}`;
+    }
+
+    async function connectWallet() {
+      const provider = getMetaMaskProvider();
+      const status = document.getElementById("walletStatus");
+      const button = document.getElementById("connectWallet");
+      if (!provider) {
+        status.textContent = "未检测到 MetaMask，请安装或启用 MetaMask 钱包";
+        return;
+      }
+
+      try {
+        const chainId = document.getElementById("chainSelect").value;
+        const accounts = await provider.request({ method: "eth_requestAccounts" });
+        account = accounts[0];
+
+        try {
+          await provider.request({ method: "wallet_switchEthereumChain", params: [{ chainId }] });
+        } catch (switchError) {
+          console.warn("chain switch failed", switchError);
+        }
+
+        const balanceHex = await provider.request({ method: "eth_getBalance", params: [account, "latest"] });
+        const balance = Number(BigInt(balanceHex)) / 1e18;
+        const tokenBalance = await readTokenBalance(provider, account);
+        const short = account.slice(0, 6) + "..." + account.slice(-4);
+        status.textContent = `MetaMask | 原生币 ${balance.toFixed(4)}${tokenBalance ? " | " + tokenBalance : ""}`;
+        button.textContent = short;
+        button.title = account;
+        analyze();
+      } catch (error) {
+        status.textContent = "连接失败或用户取消";
+        console.error(error);
+      }
+    }
+
+    document.getElementById("connectWallet").addEventListener("click", connectWallet);
+    document.getElementById("recalc").addEventListener("click", () => {
+      analyze();
+      setPanelStatus("已重新分析");
+    });
+    document.getElementById("exportJson").addEventListener("click", async () => {
+      const text = document.getElementById("output").value;
+      try {
+        await navigator.clipboard?.writeText(text);
+        setPanelStatus("计划已复制");
+      } catch (_error) {
+        document.getElementById("output").select();
+        document.execCommand("copy");
+        setPanelStatus("计划已复制");
+      }
+    });
+    ["bankroll", "maxStake", "minEdge", "kellyFraction", "factorStrength"].forEach(id => {
+      document.getElementById(id).addEventListener("input", analyze);
+    });
+
+    render();
+  </script>
+</body>
+</html>
