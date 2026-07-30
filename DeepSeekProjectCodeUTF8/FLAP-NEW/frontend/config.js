@@ -5,7 +5,7 @@
   rpcUrls: ["https://bsc-dataseed.binance.org"],
   blockExplorerUrls: ["https://bscscan.com"],
 
-  tokenAddress: "0xe2EEbD01f84437B2fe52f448Ed8318B945b57777",
+  tokenAddress: "0x42D8055eB359DD7F19f6eE3fAEBf45eA9d237777",
   prizePoolAddress: "0x054c3CFA3EE144867DFd8f38AfCB56abde07a727",
   lotteryAddress: "0x74decfA01Da16e542d457961aAEA0A392b1AF9bC",
 
@@ -16,4 +16,5 @@
   roundDurationSeconds: 120,
   localFirstRoundStart: 0,
 };
+
 
