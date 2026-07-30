@@ -6,8 +6,8 @@
   blockExplorerUrls: ["https://bscscan.com"],
 
   tokenAddress: "0x42D8055eB359DD7F19f6eE3fAEBf45eA9d237777",
-  prizePoolAddress: "0x054c3CFA3EE144867DFd8f38AfCB56abde07a727",
-  lotteryAddress: "0x74decfA01Da16e542d457961aAEA0A392b1AF9bC",
+  prizePoolAddress: "0x5b3F3833249894168903247D8F945e9F7e965716",
+  lotteryAddress: "0x00E1F70585C4303A42b5204547a1e7442F2668b3",
 
   pairAddress: "",
   wrappedNativeAddress: "0x0000000000000000000000000000000000000000",
@@ -16,5 +16,4 @@
   roundDurationSeconds: 120,
   localFirstRoundStart: 0,
 };
-
 
