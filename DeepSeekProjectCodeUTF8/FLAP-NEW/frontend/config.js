@@ -13,7 +13,6 @@
   wrappedNativeAddress: "0x0000000000000000000000000000000000000000",
   rewardSymbol: "SPCXB",
   rewardDecimals: 18,
-  roundDurationSeconds: 120,
+  roundDurationSeconds: 600,
   localFirstRoundStart: 0,
 };
-
