@@ -1,0 +1,1765 @@
+:root {
+  --paper: #fff9e8;
+  --card: #fffcf3;
+  --card-aged: #fff2d8;
+  --ink: #171717;
+  --muted: #766f63;
+  --line: #d9c28d;
+  --orange: #ff7d29;
+  --orange-deep: #e94c22;
+  --green: #2a9d68;
+  --red: #e63946;
+  --gold: #d4af37;
+  --gold-deep: #9d7621;
+  --silver: #c8c8c8;
+  --charcoal: #2b2d34;
+  --shadow-paper: 0 6px 14px rgba(150, 110, 50, 0.1);
+  --shadow-press: inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -7px 14px rgba(116, 82, 25, 0.07);
+  --gold-glow: 0 0 4px rgba(212, 175, 55, 0.42), 0 0 14px rgba(212, 175, 55, 0.18);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--ink);
+  background:
+    url("./assets/paper-noise.png"),
+    radial-gradient(circle, rgba(66, 52, 21, 0.07) 0 0.8px, transparent 1px),
+    var(--paper);
+  background-size: 160px 160px, 9px 9px, auto;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle, rgba(104, 78, 30, 0.055) 0 0.7px, transparent 0.9px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.34) 0 0.8px, transparent 1px);
+  background-size: 13px 13px, 19px 19px;
+  mix-blend-mode: multiply;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  min-height: 44px;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  letter-spacing: 0;
+  transition: transform 160ms ease, filter 160ms ease, box-shadow 160ms ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+  transform: none;
+}
+
+input {
+  width: 100%;
+  min-height: 46px;
+  border: 0;
+  border-bottom: 2px solid var(--gold);
+  border-radius: 6px 6px 0 0;
+  padding: 0 12px;
+  color: var(--ink);
+  background: #f6edcf;
+  box-shadow: inset 0 2px 7px rgba(89, 69, 24, 0.12);
+}
+
+.shell {
+  width: min(1380px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 26px 0 44px;
+  animation: paperOpen 520ms ease-out both;
+}
+
+.topbar {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 10px 0 18px;
+}
+
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ghost-link,
+.receipt-link {
+  min-height: 44px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0 16px;
+  border: 1px solid var(--gold);
+  border-radius: 8px;
+  color: var(--gold-deep);
+  background: linear-gradient(180deg, #fffdf5, #fff0c9);
+  box-shadow: var(--shadow-press);
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.eyebrow,
+.stub-label {
+  margin: 0 0 6px;
+  color: var(--orange-deep);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+h1,
+h2,
+p {
+  letter-spacing: 0;
+}
+
+h1,
+h2 {
+  margin: 0;
+}
+
+h1 {
+  font-size: 4rem;
+  line-height: 0.98;
+  font-weight: 950;
+}
+
+.headline-note {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.primary-btn {
+  padding: 0 19px;
+  color: #fff9ed;
+  background: linear-gradient(180deg, var(--orange), var(--orange-deep));
+  box-shadow:
+    0 10px 20px rgba(233, 76, 34, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.42),
+    inset 0 -3px 0 rgba(124, 31, 14, 0.24);
+  font-weight: 900;
+  text-shadow: 0 0 5px rgba(255, 228, 173, 0.34);
+}
+
+.ghost-btn {
+  padding: 0 18px;
+  color: var(--gold-deep);
+  background: linear-gradient(180deg, #fffdf5, #fff0c9);
+  border: 1px solid var(--gold);
+  box-shadow: var(--shadow-press);
+  font-weight: 900;
+}
+
+.ghost-btn:hover {
+  background: linear-gradient(180deg, #fff6da, #ffe3ad);
+}
+
+.gold-text {
+  color: var(--gold);
+  text-shadow: 0 0 4px rgba(212, 175, 55, 0.4);
+  font-weight: 900;
+}
+
+.wide {
+  width: 100%;
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.metric-panel {
+  min-height: 122px;
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  align-content: space-between;
+  padding: 17px 18px;
+  border: 1px solid rgba(212, 175, 55, 0.62);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 242, 216, 0.82)),
+    var(--card);
+  box-shadow: var(--shadow-paper), var(--shadow-press);
+}
+
+.metric-panel::before,
+.buy-box::before,
+.draw-trigger-box::before,
+.history-rail::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 9px;
+  border-top: 1px dashed rgba(157, 118, 33, 0.36);
+}
+
+.metric-panel::after {
+  content: "";
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  width: 54px;
+  height: 26px;
+  opacity: 0.18;
+  background:
+    linear-gradient(135deg, transparent 45%, currentColor 46% 54%, transparent 55%),
+    linear-gradient(45deg, transparent 45%, currentColor 46% 54%, transparent 55%);
+  background-size: 14px 14px;
+}
+
+.metric-icon {
+  position: absolute;
+  right: 14px;
+  top: 14px;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-weight: 950;
+  opacity: 0.42;
+}
+
+.accent-warm {
+  color: var(--orange);
+}
+
+.accent-fresh {
+  color: var(--green);
+}
+
+.accent-ink {
+  color: var(--red);
+}
+
+.metric-panel span,
+.metric-panel small {
+  color: var(--muted);
+  font-family: "Songti SC", SimSun, serif;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.metric-panel strong {
+  max-width: calc(100% - 42px);
+  color: var(--gold);
+  font-size: 2.25rem;
+  line-height: 1;
+  overflow-wrap: anywhere;
+}
+
+.ticket-summary-card {
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.ticket-summary-card:hover,
+.ticket-summary-card:focus-visible {
+  border-color: var(--gold);
+  box-shadow: 0 10px 22px rgba(150, 110, 50, 0.16), var(--shadow-press), var(--gold-glow);
+  transform: translateY(-2px);
+  outline: none;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) 352px;
+  gap: 18px;
+  align-items: start;
+}
+
+.user-workspace {
+  display: grid;
+  grid-template-columns: minmax(220px, 320px) minmax(320px, 430px) minmax(280px, 360px);
+  gap: 18px;
+  align-items: start;
+  justify-content: center;
+}
+
+.scratch-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: 18px;
+  align-items: stretch;
+}
+
+.scratch-panel.compact-panel {
+  grid-template-columns: minmax(280px, 430px);
+  align-items: start;
+}
+
+.compact-panel .buy-box {
+  align-self: start;
+}
+
+.lottery-card {
+  min-height: 608px;
+  position: relative;
+  overflow: hidden;
+  padding: 24px;
+  border: 2px solid var(--gold);
+  border-radius: 12px;
+  background:
+    url("./assets/paper-noise.png"),
+    linear-gradient(135deg, #fff2d8 0%, #fff9e8 43%, #e8f3e8 100%);
+  background-size: 160px 160px, auto;
+  box-shadow:
+    0 8px 20px rgba(139, 90, 20, 0.15),
+    inset 0 0 0 6px rgba(255, 255, 255, 0.34),
+    inset 0 0 24px rgba(91, 56, 17, 0.08);
+}
+
+.lottery-card::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border: 1px dashed rgba(157, 118, 33, 0.48);
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+.lottery-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle, rgba(68, 44, 12, 0.08) 0 0.8px, transparent 1px),
+    linear-gradient(90deg, transparent 0 48%, rgba(255, 255, 255, 0.22) 50%, transparent 52% 100%);
+  background-size: 7px 7px, 100% 100%;
+  mix-blend-mode: multiply;
+}
+
+.ticket-cut {
+  position: absolute;
+  top: 50%;
+  width: 28px;
+  height: 48px;
+  border-radius: 99px;
+  background: var(--paper);
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  z-index: 2;
+}
+
+.cut-left {
+  left: -15px;
+}
+
+.cut-right {
+  right: -15px;
+}
+
+.ticket-rim {
+  position: absolute;
+  inset: 17px;
+  border: 2px dashed rgba(255, 125, 41, 0.52);
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+.ticket-header,
+.ticket-footer {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.ticket-header p {
+  margin: 0 0 6px;
+  color: var(--green);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.ticket-header h2 {
+  font-size: 1.8rem;
+  font-weight: 950;
+}
+
+.ticket-code {
+  min-width: 96px;
+  padding: 10px 12px;
+  border: 1px solid rgba(212, 175, 55, 0.65);
+  border-radius: 8px;
+  background: rgba(255, 252, 243, 0.78);
+  text-align: right;
+  box-shadow: var(--shadow-press);
+}
+
+.ticket-code span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+.ticket-code strong {
+  color: var(--gold-deep);
+  font-family: "Courier New", monospace;
+  font-size: 1.2rem;
+}
+
+.scratch-hero {
+  position: relative;
+  z-index: 1;
+  min-height: 132px;
+  margin: 22px 0 14px;
+  overflow: hidden;
+  border: 2px solid rgba(212, 175, 55, 0.82);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(42, 157, 104, 0.16), rgba(230, 57, 70, 0.12)),
+    #fffdf5;
+  box-shadow: inset 0 0 18px rgba(95, 69, 14, 0.14);
+}
+
+.scratch-reveal {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  padding: 18px;
+  text-align: center;
+  background:
+    linear-gradient(90deg, transparent 0 8%, rgba(42, 157, 104, 0.18) 9% 10%, transparent 11% 100%),
+    repeating-linear-gradient(135deg, rgba(212, 175, 55, 0.12) 0 8px, transparent 8px 16px);
+}
+
+.scratch-reveal strong {
+  color: var(--gold-deep);
+  font-size: 1.55rem;
+  font-weight: 950;
+  text-shadow: 0 0 4px rgba(212, 175, 55, 0.34);
+}
+
+.scratch-reveal small {
+  max-width: 440px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.market-tag {
+  padding: 3px 9px;
+  border-radius: 999px;
+  color: #fffdf7;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.market-tag.up {
+  background: var(--green);
+}
+
+.scratch-canvas,
+.tile-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  touch-action: none;
+  background-image: url("./assets/foil-noise.png");
+  background-size: 160px 160px;
+}
+
+.draw-trigger-canvas.is-locked {
+  cursor: not-allowed;
+}
+
+.ticker-tape {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.ticker-tape span {
+  min-height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  background: rgba(255, 252, 243, 0.72);
+  color: var(--green);
+  border-bottom: 2px solid rgba(42, 157, 104, 0.36);
+  font-family: "Courier New", monospace;
+  font-weight: 900;
+  font-size: 0.86rem;
+}
+
+.ticker-tape span:nth-child(3) {
+  color: var(--orange-deep);
+}
+
+.ticket-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.scratch-tile {
+  position: relative;
+  min-height: 116px;
+  overflow: hidden;
+  border: 1px solid rgba(212, 175, 55, 0.8);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 252, 243, 0.95), rgba(255, 241, 202, 0.88)),
+    var(--card);
+  box-shadow: inset 0 -8px 0 rgba(157, 118, 33, 0.08);
+}
+
+.tile-prize {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  padding: 12px;
+  text-align: center;
+}
+
+.tile-prize::before {
+  content: "";
+  width: 58px;
+  height: 28px;
+  background:
+    linear-gradient(135deg, transparent 0 24%, var(--green) 25% 30%, transparent 31% 42%, var(--green) 43% 49%, transparent 50% 100%),
+    linear-gradient(90deg, rgba(42, 157, 104, 0.16), rgba(230, 57, 70, 0.12));
+  border-bottom: 2px solid rgba(212, 175, 55, 0.7);
+}
+
+.tile-prize b {
+  color: var(--gold-deep);
+  font-size: 1rem;
+  font-weight: 950;
+}
+
+.tile-prize span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.ticket-footer {
+  margin-top: 18px;
+  padding-top: 15px;
+  border-top: 1px dashed rgba(157, 118, 33, 0.54);
+}
+
+.ticket-footer span {
+  display: block;
+  color: var(--muted);
+  font-family: "Songti SC", SimSun, serif;
+  font-size: 0.86rem;
+}
+
+.ticket-footer strong {
+  color: var(--gold-deep);
+  font-family: "Courier New", monospace;
+  font-size: 0.96rem;
+}
+
+.pool-progress {
+  width: 46%;
+  height: 16px;
+  padding: 3px;
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  background:
+    repeating-linear-gradient(90deg, rgba(157, 118, 33, 0.22) 0 1px, transparent 1px 14px),
+    #fff7db;
+}
+
+.pool-progress i {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--green), #78c95f);
+  box-shadow: 0 0 10px rgba(42, 157, 104, 0.34);
+  transition: width 420ms ease;
+}
+
+.buy-box,
+.draw-trigger-box,
+.history-rail,
+.archive-board {
+  position: relative;
+  border: 1px solid rgba(212, 175, 55, 0.56);
+  border-radius: 8px;
+  background:
+    url("./assets/paper-noise.png"),
+    radial-gradient(circle, rgba(66, 52, 21, 0.06) 0 0.8px, transparent 1px),
+    var(--card);
+  background-size: 160px 160px, 7px 7px, auto;
+  box-shadow: var(--shadow-paper), var(--shadow-press);
+}
+
+.buy-box {
+  align-self: center;
+  padding: 20px;
+}
+
+.draw-trigger-box {
+  padding: 20px;
+}
+
+.draw-trigger-box h2 {
+  margin-bottom: 10px;
+  color: var(--ink);
+  font-size: 1.35rem;
+  font-weight: 950;
+}
+
+.draw-trigger-status {
+  min-height: 42px;
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.draw-round-slip {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px dashed rgba(157, 118, 33, 0.44);
+  border-radius: 8px;
+  background: rgba(255, 248, 226, 0.74);
+}
+
+.draw-round-slip span {
+  color: var(--muted);
+  font-family: "Songti SC", SimSun, serif;
+  font-size: 0.84rem;
+  font-weight: 900;
+}
+
+.draw-round-slip strong {
+  color: var(--gold-deep);
+  font-family: "Courier New", monospace;
+  font-size: 1.08rem;
+  font-weight: 950;
+}
+
+.draw-trigger-card {
+  position: relative;
+  min-height: 164px;
+  overflow: hidden;
+  border: 2px solid rgba(212, 175, 55, 0.82);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(42, 157, 104, 0.13), rgba(255, 125, 41, 0.13)),
+    #fffdf5;
+  box-shadow: inset 0 0 18px rgba(95, 69, 14, 0.14);
+}
+
+.draw-trigger-reveal {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  padding: 18px;
+  text-align: center;
+}
+
+.draw-trigger-reveal span,
+.draw-trigger-reveal small {
+  color: var(--muted);
+  font-family: "Songti SC", SimSun, serif;
+}
+
+.draw-trigger-reveal strong {
+  color: var(--gold-deep);
+  font-family: "Courier New", monospace;
+  font-size: 1.85rem;
+  line-height: 1;
+}
+
+.buy-box label {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-family: "Songti SC", SimSun, serif;
+  font-weight: 900;
+}
+
+.stepper {
+  display: grid;
+  grid-template-columns: 48px 1fr 48px;
+  gap: 8px;
+}
+
+.stepper button {
+  color: #fff9ed;
+  background: var(--charcoal);
+  font-size: 1.2rem;
+  font-weight: 950;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.2);
+}
+
+.stepper input {
+  text-align: center;
+  color: var(--gold-deep);
+  font-size: 1.4rem;
+  font-weight: 950;
+}
+
+.quote {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 18px 0;
+  padding: 14px;
+  border-radius: 8px;
+  background: #f5e7bf;
+  box-shadow: inset 0 1px 8px rgba(111, 82, 31, 0.12);
+}
+
+.quote span {
+  flex: 0 0 auto;
+  color: var(--muted);
+}
+
+.quote strong {
+  min-width: 0;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.number-slip {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px dashed rgba(157, 118, 33, 0.44);
+  border-radius: 8px;
+  background: rgba(255, 248, 226, 0.74);
+}
+
+.number-slip span {
+  color: var(--muted);
+  font-family: "Songti SC", SimSun, serif;
+  font-size: 0.84rem;
+}
+
+.number-slip strong {
+  color: var(--gold-deep);
+  font-family: "Courier New", monospace;
+  font-size: 1.05rem;
+  overflow-wrap: anywhere;
+}
+
+.ticket-range-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ticket-range-chip {
+  display: inline-grid;
+  place-items: center;
+  min-height: 30px;
+  padding: 4px 10px;
+  border: 1px solid rgba(212, 175, 55, 0.62);
+  border-radius: 6px;
+  color: var(--gold-deep);
+  background:
+    repeating-linear-gradient(135deg, rgba(212, 175, 55, 0.12) 0 7px, rgba(255, 252, 243, 0.82) 7px 14px),
+    rgba(255, 252, 243, 0.9);
+  font-family: "Courier New", monospace;
+  font-weight: 950;
+  letter-spacing: 0;
+  box-shadow: inset 0 -4px 0 rgba(157, 118, 33, 0.08);
+  text-shadow: var(--gold-glow);
+}
+
+.actions {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.tx-status {
+  min-height: 42px;
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.history-rail {
+  padding: 16px;
+}
+
+.panel-section + .panel-section {
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px dashed rgba(157, 118, 33, 0.5);
+}
+
+.panel-section h2 {
+  margin-bottom: 12px;
+  font-size: 1rem;
+}
+
+.panel-section h2 span {
+  display: inline-block;
+  padding: 4px 10px;
+  border: 1px solid rgba(212, 175, 55, 0.72);
+  border-radius: 6px;
+  color: var(--gold-deep);
+  background: #fff1bf;
+  box-shadow: inset 0 -2px 0 rgba(157, 118, 33, 0.1);
+}
+
+.winner-list {
+  display: grid;
+  gap: 10px;
+}
+
+.winner-item {
+  width: 100%;
+  min-height: 96px;
+  display: grid;
+  align-content: center;
+  gap: 5px;
+  padding: 12px;
+  border: 1px dashed rgba(157, 118, 33, 0.48);
+  border-radius: 8px;
+  color: var(--ink);
+  background: linear-gradient(180deg, rgba(255, 252, 243, 0.9), rgba(255, 239, 196, 0.78));
+  text-align: left;
+  box-shadow: inset 0 -6px 0 rgba(157, 118, 33, 0.07);
+}
+
+.winner-item span,
+.winner-item small,
+.empty-note {
+  color: var(--muted);
+  font-family: "Songti SC", SimSun, serif;
+  font-size: 0.84rem;
+}
+
+.winner-item strong {
+  color: var(--gold-deep);
+  font-family: "Courier New", monospace;
+  font-size: 1.65rem;
+  line-height: 1;
+}
+
+.winner-item em {
+  min-width: 0;
+  color: var(--charcoal);
+  font-family: "Courier New", monospace;
+  font-size: 0.72rem;
+  font-style: normal;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.receipt-link {
+  width: 100%;
+  margin-top: 12px;
+  font-size: 0.9rem;
+}
+
+.draw-row {
+  display: grid;
+  grid-template-columns: 1fr 86px;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.receipt-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.receipt-btn::before,
+.receipt-btn::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 10px;
+  height: 100%;
+  background:
+    radial-gradient(circle at 5px 5px, var(--card) 0 4px, transparent 4.5px) 0 0 / 10px 12px repeat-y;
+}
+
+.receipt-btn::before {
+  left: -5px;
+}
+
+.receipt-btn::after {
+  right: -5px;
+}
+
+.info-list {
+  margin: 12px 0 0;
+}
+
+.info-list div {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr);
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px dashed rgba(157, 118, 33, 0.34);
+}
+
+.info-list dt {
+  color: var(--muted);
+  font-family: "Songti SC", SimSun, serif;
+  font-size: 0.86rem;
+}
+
+.info-list dd {
+  min-width: 0;
+  margin: 0;
+  color: var(--charcoal);
+  overflow-wrap: anywhere;
+  font-weight: 850;
+}
+
+.code-list dd {
+  font-family: "Courier New", monospace;
+  font-size: 0.88rem;
+}
+
+.win-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(29, 24, 18, 0.42);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+.win-modal.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.win-receipt {
+  width: min(420px, 100%);
+  position: relative;
+  padding: 24px;
+  border: 2px solid var(--gold);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, #fffdf5, #fff0c9),
+    var(--card);
+  box-shadow: 0 24px 70px rgba(26, 20, 12, 0.36);
+  transform: translateY(16px) rotate(-1deg);
+  transition: transform 220ms ease;
+}
+
+.win-modal.visible .win-receipt {
+  transform: translateY(0) rotate(-1deg);
+}
+
+.win-receipt::before,
+.win-receipt::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background:
+    radial-gradient(circle at 5px 5px, transparent 0 4px, var(--gold) 4.5px 5px, #fffdf5 5.5px) 0 0 / 14px 10px repeat-x;
+}
+
+.win-receipt::before {
+  top: -7px;
+}
+
+.win-receipt::after {
+  bottom: -7px;
+  transform: rotate(180deg);
+}
+
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  min-height: 34px;
+  color: var(--charcoal);
+  background: transparent;
+  border: 1px solid rgba(157, 118, 33, 0.42);
+  font-weight: 900;
+}
+
+.win-receipt h2 {
+  margin-bottom: 14px;
+  color: var(--gold-deep);
+  font-size: 1.6rem;
+}
+
+.draw-scratch-card {
+  position: relative;
+  min-height: 126px;
+  margin: 12px 0 14px;
+  overflow: hidden;
+  border: 2px solid rgba(212, 175, 55, 0.82);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(42, 157, 104, 0.12), rgba(255, 125, 41, 0.12)),
+    #fffdf5;
+}
+
+.winning-number {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+}
+
+.winning-number span {
+  color: var(--muted);
+  font-family: "Songti SC", SimSun, serif;
+  font-weight: 900;
+}
+
+.winning-number strong {
+  color: var(--gold-deep);
+  font-family: "Courier New", monospace;
+  font-size: 2.7rem;
+  line-height: 1;
+  text-shadow: 0 0 8px rgba(212, 175, 55, 0.34);
+}
+
+.modal-scratch {
+  z-index: 2;
+}
+
+.win-receipt dl {
+  margin: 0;
+}
+
+.win-receipt div {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px dashed rgba(157, 118, 33, 0.44);
+}
+
+.win-receipt dt {
+  color: var(--muted);
+}
+
+.win-receipt dd {
+  margin: 0;
+  font-weight: 900;
+}
+
+.ticket-receipt {
+  width: min(460px, 100%);
+}
+
+.win-receipt .ticket-number-display {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin: 12px 0 14px;
+  padding: 16px;
+  border: 2px solid rgba(212, 175, 55, 0.78);
+  border-radius: 8px;
+  background:
+    repeating-linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0 8px, transparent 8px 16px),
+    linear-gradient(180deg, rgba(255, 249, 232, 0.9), rgba(255, 252, 243, 0.98));
+}
+
+.win-receipt .ticket-number-display span {
+  color: var(--muted);
+  font-family: "Songti SC", SimSun, serif;
+  font-weight: 900;
+}
+
+.win-receipt .ticket-number-display strong {
+  color: transparent;
+  background: linear-gradient(180deg, #f3d974 0%, #d4af37 42%, #9d7621 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  font-family: "Courier New", monospace;
+  font-size: clamp(1.65rem, 5vw, 2.45rem);
+  line-height: 1.08;
+  overflow-wrap: anywhere;
+  text-shadow: var(--gold-glow);
+}
+
+.win-receipt .ticket-number-display .ticket-range-list {
+  gap: 10px;
+}
+
+.win-receipt .ticket-number-display .ticket-range-chip {
+  min-height: 44px;
+  padding: 7px 12px;
+  font-size: clamp(1.45rem, 4.4vw, 2.2rem);
+  line-height: 1;
+}
+
+.ticket-receipt dd {
+  overflow-wrap: anywhere;
+}
+
+.history-shell {
+  width: min(980px, calc(100% - 32px));
+}
+
+.archive-board {
+  padding: 18px;
+}
+
+.archive-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px dashed rgba(157, 118, 33, 0.44);
+}
+
+.archive-toolbar span {
+  display: block;
+  color: var(--muted);
+  font-family: "Songti SC", SimSun, serif;
+  font-size: 0.86rem;
+}
+
+.archive-toolbar strong {
+  color: var(--gold-deep);
+  font-family: "Courier New", monospace;
+}
+
+.archive-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.archive-item {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid rgba(212, 175, 55, 0.52);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(255, 252, 243, 0.88), rgba(255, 240, 201, 0.82));
+  box-shadow: var(--shadow-press);
+}
+
+.archive-number {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 6px;
+  border-right: 1px dashed rgba(157, 118, 33, 0.44);
+}
+
+.archive-number span {
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.archive-number strong {
+  color: var(--gold-deep);
+  font-family: "Courier New", monospace;
+  font-size: 2.1rem;
+}
+
+.archive-item dl {
+  margin: 0;
+}
+
+.archive-item dl div {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px dashed rgba(157, 118, 33, 0.3);
+}
+
+.archive-item dt {
+  color: var(--muted);
+  font-family: "Songti SC", SimSun, serif;
+}
+
+.archive-item dd {
+  min-width: 0;
+  margin: 0;
+  font-weight: 850;
+  overflow-wrap: anywhere;
+}
+
+/* Visual polish layer: layout, paper tickets, and scratch-card texture. */
+.shell {
+  width: min(1448px, calc(100% - 40px));
+}
+
+.topbar {
+  align-items: center;
+  padding: 4px 0 18px;
+}
+
+.top-actions {
+  align-self: end;
+}
+
+.status-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.metric-panel,
+.buy-box,
+.draw-trigger-box,
+.history-rail,
+.archive-board {
+  border: 1px solid rgba(212, 175, 55, 0.86);
+  border-radius: 14px;
+  box-shadow: var(--shadow-paper), var(--shadow-press);
+}
+
+.metric-panel {
+  min-height: 120px;
+  padding: 17px 18px 16px;
+  background:
+    url("./assets/paper-noise.png"),
+    radial-gradient(circle at 86% 82%, rgba(42, 157, 104, 0.1), transparent 22%),
+    linear-gradient(180deg, #fff9ea 0%, #fff6e0 100%);
+  background-size: 160px 160px, auto, auto;
+}
+
+.metric-panel::before,
+.buy-box::before,
+.history-rail::before {
+  left: 18px;
+  right: 18px;
+  top: 12px;
+  border-top-color: rgba(157, 118, 33, 0.4);
+}
+
+.metric-panel::after,
+.history-rail::after,
+.buy-box::after,
+.draw-trigger-box::after {
+  content: "";
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  width: 58px;
+  height: 28px;
+  opacity: 0.16;
+  background:
+    linear-gradient(135deg, transparent 43%, currentColor 44% 52%, transparent 53%),
+    linear-gradient(45deg, transparent 43%, currentColor 44% 52%, transparent 53%);
+  background-size: 15px 15px;
+  pointer-events: none;
+}
+
+.metric-icon {
+  width: 35px;
+  height: 35px;
+  color: var(--gold-deep);
+  border-color: rgba(212, 175, 55, 0.78);
+  background: rgba(255, 252, 243, 0.64);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.72), var(--gold-glow);
+  opacity: 0.68;
+}
+
+.metric-panel span,
+.metric-panel small,
+.draw-trigger-status,
+.tx-status,
+.empty-note,
+.winner-item span,
+.winner-item small,
+.draw-trigger-reveal span,
+.draw-trigger-reveal small,
+.draw-round-slip span,
+.buy-box label,
+.number-slip span,
+.quote span {
+  color: #757575;
+}
+
+.metric-panel strong,
+.gold-text,
+.number-slip strong,
+.draw-round-slip strong,
+.winner-item strong,
+.archive-number strong,
+.archive-toolbar strong,
+.winning-number strong {
+  color: transparent;
+  background: linear-gradient(180deg, #f3d974 0%, #d4af37 42%, #9d7621 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  text-shadow: var(--gold-glow);
+}
+
+.metric-panel strong {
+  align-self: center;
+  font-size: clamp(2.35rem, 3vw, 3.15rem);
+  line-height: 0.95;
+}
+
+.metric-panel small {
+  font-size: 0.82rem;
+}
+
+.metric-panel:nth-child(2) small {
+  position: absolute;
+  left: 18px;
+  right: 62px;
+  bottom: 14px;
+  z-index: 4;
+  display: block;
+  padding: 8px 10px;
+  border: 1px solid rgba(212, 175, 55, 0.68);
+  border-radius: 10px;
+  background: rgba(255, 252, 243, 0.96);
+  box-shadow: 0 8px 18px rgba(150, 110, 50, 0.12);
+  opacity: 0;
+  transform: translateY(5px);
+  transition: opacity 160ms ease, transform 160ms ease;
+  pointer-events: none;
+}
+
+.metric-panel:nth-child(2):hover small {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.primary-btn {
+  border: 1px solid rgba(255, 183, 88, 0.72);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #ff8f3f 0%, #ff6428 54%, #dc421d 100%);
+  box-shadow:
+    0 9px 16px rgba(233, 76, 34, 0.2),
+    inset 0 2px 0 rgba(255, 255, 255, 0.42),
+    inset 0 -5px 0 rgba(124, 31, 14, 0.22);
+}
+
+.ghost-btn,
+.ghost-link,
+.receipt-link {
+  border-radius: 10px;
+  border-color: rgba(212, 175, 55, 0.88);
+  background: linear-gradient(180deg, #fffdf7 0%, #fff8e5 54%, #fff0c9 100%);
+  box-shadow:
+    0 5px 10px rgba(150, 110, 50, 0.08),
+    var(--shadow-press);
+}
+
+.ghost-btn:hover,
+.ghost-link:hover,
+.receipt-link:hover {
+  background: linear-gradient(180deg, #fff9e8 0%, #ffecc2 100%);
+}
+
+.user-workspace {
+  grid-template-columns: minmax(360px, 0.78fr) minmax(580px, 1.22fr);
+  grid-template-areas:
+    "buy draw"
+    "history draw";
+  align-items: start;
+  gap: 18px;
+}
+
+.buy-box {
+  grid-area: buy;
+  align-self: start;
+  display: grid;
+  padding: 20px;
+  background:
+    url("./assets/paper-noise.png"),
+    linear-gradient(180deg, rgba(255, 252, 243, 0.96), rgba(255, 249, 232, 0.96));
+  background-size: 160px 160px, auto;
+}
+
+.history-rail {
+  grid-area: history;
+  align-self: start;
+  padding: 14px;
+  background:
+    url("./assets/paper-noise.png"),
+    linear-gradient(180deg, rgba(255, 252, 243, 0.95), rgba(255, 246, 224, 0.88));
+  background-size: 160px 160px, auto;
+}
+
+.draw-trigger-box {
+  grid-area: draw;
+  padding: 24px;
+  background:
+    url("./assets/paper-noise.png"),
+    linear-gradient(180deg, rgba(255, 252, 243, 0.98), rgba(255, 249, 232, 0.96));
+  background-size: 160px 160px, auto;
+}
+
+.draw-trigger-box h2 {
+  font-size: clamp(1.5rem, 2vw, 2rem);
+}
+
+.history-rail .panel-section h2 {
+  margin-bottom: 10px;
+}
+
+.history-rail .panel-section h2 span {
+  border-radius: 8px;
+}
+
+.winner-item {
+  min-height: 82px;
+  border-radius: 10px;
+}
+
+.receipt-link {
+  min-height: 42px;
+}
+
+input,
+.stepper input {
+  border-radius: 0;
+  border-bottom: 2px solid rgba(212, 175, 55, 0.88);
+  background: linear-gradient(180deg, rgba(255, 252, 243, 0.34), rgba(255, 246, 224, 0.38));
+  box-shadow: none;
+}
+
+.stepper {
+  grid-template-columns: 46px 1fr 46px;
+  align-items: end;
+}
+
+.stepper button {
+  min-height: 46px;
+  border-radius: 10px;
+  color: #fffdf3;
+  background: linear-gradient(180deg, #d9bd55 0%, #b78d2c 100%);
+  box-shadow:
+    0 6px 11px rgba(157, 118, 33, 0.2),
+    inset 0 2px 0 rgba(255, 255, 255, 0.36),
+    inset 0 -4px 0 rgba(105, 75, 18, 0.24);
+}
+
+.buy-box .tx-status {
+  order: -1;
+  min-height: auto;
+  margin: 2px 0 14px;
+  padding: 10px 12px;
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #fff6db, #fff0c9);
+}
+
+.quote,
+.number-slip,
+.draw-round-slip {
+  border-radius: 10px;
+  border-color: rgba(157, 118, 33, 0.42);
+  background: rgba(255, 250, 235, 0.78);
+  box-shadow: inset 0 -5px 12px rgba(157, 118, 33, 0.055);
+}
+
+.draw-round-slip {
+  grid-template-columns: minmax(0, 1fr) minmax(120px, auto);
+  border-width: 0 0 2px;
+  border-style: solid;
+  border-color: rgba(212, 175, 55, 0.88);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.draw-trigger-card {
+  min-height: clamp(300px, 30vw, 390px);
+  border: 2px solid rgba(212, 175, 55, 0.94);
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, rgba(42, 157, 104, 0.12), transparent 30%),
+    linear-gradient(315deg, rgba(230, 57, 70, 0.08), transparent 34%),
+    #fffdf5;
+  box-shadow:
+    inset 0 0 0 5px rgba(255, 255, 255, 0.52),
+    inset 0 0 24px rgba(95, 69, 14, 0.12),
+    0 8px 16px rgba(150, 110, 50, 0.12);
+}
+
+.draw-trigger-card::before,
+.draw-trigger-card::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  z-index: 3;
+  height: 9px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 5px 5px, transparent 0 3.8px, rgba(212, 175, 55, 0.65) 4px 4.8px, rgba(255, 252, 243, 0.96) 5px) 0 0 / 15px 9px repeat-x;
+}
+
+.draw-trigger-card::before {
+  top: -1px;
+}
+
+.draw-trigger-card::after {
+  bottom: -1px;
+  transform: rotate(180deg);
+}
+
+.draw-trigger-reveal {
+  overflow: hidden;
+}
+
+.draw-trigger-reveal::before {
+  content: "";
+  width: min(76%, 430px);
+  height: 104px;
+  opacity: 0.28;
+  background:
+    linear-gradient(135deg, transparent 0 17%, var(--green) 18% 22%, transparent 23% 35%, var(--green) 36% 41%, transparent 42% 58%, var(--red) 59% 63%, transparent 64%),
+    linear-gradient(90deg, rgba(212, 175, 55, 0.22), rgba(42, 157, 104, 0.12));
+  border-bottom: 2px solid rgba(212, 175, 55, 0.74);
+  filter: drop-shadow(0 4px 5px rgba(157, 118, 33, 0.12));
+}
+
+.draw-trigger-reveal::after {
+  content: "";
+  position: absolute;
+  inset: 20px;
+  opacity: 0.12;
+  background:
+    linear-gradient(45deg, transparent 0 48%, var(--green) 49% 51%, transparent 52%),
+    linear-gradient(135deg, transparent 0 48%, var(--red) 49% 51%, transparent 52%);
+  background-size: 28px 28px;
+}
+
+.draw-trigger-reveal > * {
+  position: relative;
+  z-index: 1;
+}
+
+.draw-trigger-canvas {
+  background:
+    url("./assets/foil-noise.png"),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.24) 0 5px, rgba(127, 127, 127, 0.08) 5px 10px),
+    linear-gradient(135deg, #ededed, #bfbfbf);
+  background-size: 160px 160px, auto, auto;
+}
+
+.scratch-canvas:hover {
+  filter: brightness(1.015) contrast(1.02);
+}
+
+.roundCountdown,
+#roundCountdown {
+  display: inline-block;
+  animation: goldPulse 1s ease-in-out infinite;
+}
+
+#rewardBalance {
+  display: inline-block;
+  transition: transform 180ms ease, filter 180ms ease;
+}
+
+@keyframes paperOpen {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scaleY(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+}
+
+@keyframes goldPulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 0 rgba(212, 175, 55, 0));
+  }
+  50% {
+    filter: drop-shadow(0 0 7px rgba(212, 175, 55, 0.34));
+  }
+}
+
+@media (max-width: 1180px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr) 340px;
+  }
+
+  .user-workspace {
+    grid-template-columns: minmax(320px, 0.8fr) minmax(460px, 1.2fr);
+    grid-template-areas:
+      "buy draw"
+      "history draw";
+  }
+
+  .history-rail {
+    grid-area: history;
+  }
+
+  .winner-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 980px) {
+  h1 {
+    font-size: 3rem;
+  }
+
+  .topbar,
+  .workspace,
+  .user-workspace,
+  .scratch-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .user-workspace {
+    grid-template-areas:
+      "buy"
+      "draw"
+      "history";
+  }
+
+  .topbar {
+    display: grid;
+    align-items: start;
+  }
+
+  .history-rail {
+    order: 3;
+    grid-area: history;
+  }
+
+  .status-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .winner-list {
+    grid-template-columns: 1fr;
+  }
+
+  .lottery-card {
+    min-height: 560px;
+  }
+}
+
+@media (max-width: 620px) {
+  .shell {
+    width: min(100% - 20px, 1380px);
+    padding-top: 16px;
+  }
+
+  h1 {
+    font-size: 2.25rem;
+  }
+
+  .lottery-card,
+  .buy-box,
+  .draw-trigger-box {
+    padding: 14px;
+  }
+
+  .ticket-header,
+  .ticket-footer {
+    display: grid;
+  }
+
+  .ticket-code,
+  .pool-progress {
+    width: 100%;
+  }
+
+  .scratch-hero {
+    min-height: 154px;
+  }
+
+  .ticker-tape,
+  .ticket-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .actions,
+  .draw-row,
+  .archive-item {
+    grid-template-columns: 1fr;
+  }
+
+  .archive-number {
+    border-right: 0;
+    border-bottom: 1px dashed rgba(157, 118, 33, 0.44);
+    padding-bottom: 12px;
+  }
+}
+
+@media (max-width: 420px) {
+  .ticker-tape,
+  .ticket-grid,
+  .info-list div,
+  .win-receipt div,
+  .archive-item dl div {
+    grid-template-columns: 1fr;
+  }
+
+  .scratch-reveal strong {
+    font-size: 1.25rem;
+  }
+}
