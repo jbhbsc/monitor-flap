@@ -87,7 +87,7 @@ contract FlapScratchLottery is Ownable, ReentrancyGuard {
     IPrizePool public prizePool;
 
     uint256 public immutable firstRoundStart;
-    uint256 public roundDuration = 2 minutes;
+    uint256 public roundDuration = 10 minutes;
     uint256 public ticketPrice;
     uint256 public maxTicketsPerUser = 50;
     uint256 public rewardBps = 10_000;
