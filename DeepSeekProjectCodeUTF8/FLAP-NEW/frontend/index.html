@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FLAP 股票刮刮乐</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="topbar">
+        <div>
+          <p class="eyebrow">FLAP Scratch Equity Ticket</p>
+          <h1>股票刮刮乐奖池</h1>
+          <p class="headline-note">链上随机开奖，管理员不能指定中奖编号</p>
+        </div>
+        <div class="top-actions">
+          <a class="ghost-link" href="./history.html">历史中奖列表</a>
+          <button id="connectBtn" class="primary-btn">连接钱包</button>
+        </div>
+      </section>
+
+      <section class="status-grid" aria-label="当前刮刮乐数据">
+        <article class="metric-panel accent-warm">
+          <div class="metric-icon">#</div>
+          <span>当前轮次</span>
+          <strong id="currentRound" class="gold-text">-</strong>
+          <small>第 <b id="countdownRound">-</b> 轮开奖倒计时：<b id="roundCountdown">等待连接</b></small>
+        </article>
+        <article class="metric-panel accent-fresh">
+          <div class="metric-icon">K</div>
+          <span>实时奖池金额</span>
+          <strong id="rewardBalance" class="gold-text">-</strong>
+          <small id="rewardAsset" hidden></small>
+        </article>
+        <article id="myTicketCard" class="metric-panel accent-ink ticket-summary-card" role="button" tabindex="0" aria-haspopup="dialog" aria-controls="myTicketsModal">
+          <div class="metric-icon">T</div>
+          <span>我的兑奖票</span>
+          <strong id="myTickets" class="gold-text">-</strong>
+          <small>每轮累计最多 50 张</small>
+        </article>
+      </section>
+
+      <section class="user-workspace">
+        <aside class="history-rail">
+          <div class="panel-section">
+            <h2><span>中奖编号</span></h2>
+            <div id="recentWinners" class="winner-list">
+              <p class="empty-note">连接钱包后显示最近轮次。</p>
+            </div>
+            <a class="receipt-link" href="./history.html">打开完整历史列表</a>
+          </div>
+        </aside>
+
+        <section class="buy-box" aria-label="购买参与">
+          <p class="stub-label">申购存根</p>
+          <label for="ticketInput">本轮购买刮刮乐张数</label>
+          <div class="stepper">
+            <button id="minusBtn" type="button" aria-label="减少票数">-</button>
+            <input id="ticketInput" type="number" min="1" max="50" value="1" />
+            <button id="plusBtn" type="button" aria-label="增加票数">+</button>
+          </div>
+          <div class="quote">
+            <span>需要购买</span>
+            <strong id="stakeQuote" class="gold-text">-</strong>
+          </div>
+          <div class="number-slip">
+            <span>本次预计编号</span>
+            <strong id="nextTicketPreview">0001</strong>
+          </div>
+          <div class="number-slip">
+            <span>我的本轮实际编号</span>
+            <strong id="myTicketNumbers">-</strong>
+          </div>
+          <div class="actions">
+            <button id="approveBtn" class="ghost-btn" type="button" hidden>授权</button>
+            <button id="stakeBtn" class="primary-btn" type="button">购买参与</button>
+          </div>
+          <p id="txStatus" class="tx-status">请先连接钱包。部署后填入合约地址即可购买参与。</p>
+        </section>
+
+        <section class="draw-trigger-box" aria-label="刮期开奖">
+          <p class="stub-label">开奖刮号</p>
+          <h2>刮开奖池号码</h2>
+          <p id="drawTriggerStatus" class="draw-trigger-status">倒计时结束后可刮开查看是否中奖。</p>
+          <div class="draw-round-slip">
+            <span>本卡开奖轮次</span>
+            <strong id="drawTriggerRound">-</strong>
+          </div>
+          <div class="draw-trigger-card">
+            <div class="draw-trigger-reveal">
+              <span>链上开奖</span>
+              <strong>公平随机</strong>
+              <small>刮开后发起链上随机开奖交易</small>
+            </div>
+            <canvas id="drawTriggerCanvas" class="scratch-canvas draw-trigger-canvas is-locked" aria-label="刮开开奖"></canvas>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <div id="winModal" class="win-modal" aria-hidden="true">
+      <div class="win-receipt">
+        <button id="closeModalBtn" class="modal-close" type="button" aria-label="关闭弹窗">x</button>
+        <p class="stub-label">SCRATCH REVEAL</p>
+        <h2 id="modalTitle">开奖刮奖单</h2>
+        <div class="draw-scratch-card">
+          <div class="winning-number">
+            <span>中奖编号</span>
+            <strong id="winningNumberReveal">----</strong>
+          </div>
+          <canvas id="drawScratchCanvas" class="scratch-canvas modal-scratch" aria-label="刮开中奖编号"></canvas>
+        </div>
+        <dl>
+          <div><dt>开奖轮次</dt><dd id="modalRound">-</dd></div>
+          <div><dt>派奖金额</dt><dd id="modalReward">-</dd></div>
+          <div><dt>中奖地址</dt><dd id="modalWinner">-</dd></div>
+        </dl>
+      </div>
+    </div>
+
+    <div id="myTicketsModal" class="win-modal ticket-modal" aria-hidden="true">
+      <div class="win-receipt ticket-receipt" role="dialog" aria-modal="true" aria-labelledby="myTicketsModalTitle">
+        <button id="closeTicketsModalBtn" class="modal-close" type="button" aria-label="关闭弹窗">x</button>
+        <p class="stub-label">REDEEM TICKET</p>
+        <h2 id="myTicketsModalTitle">我的兑奖票</h2>
+        <div class="ticket-number-display">
+          <span>我的本轮实际编号</span>
+          <strong id="ticketModalNumbers">-</strong>
+        </div>
+        <dl>
+          <div><dt>当前轮次</dt><dd id="ticketModalRound">-</dd></div>
+          <div><dt>我的票数</dt><dd id="ticketModalCount">-</dd></div>
+          <div><dt>钱包地址</dt><dd id="ticketModalAddress">-</dd></div>
+        </dl>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.5/dist/ethers.umd.min.js"></script>
+    <script src="./config.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

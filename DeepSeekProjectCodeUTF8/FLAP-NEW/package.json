@@ -1,0 +1,9 @@
+{
+  "name": "flap-scratch-lottery",
+  "version": "1.0.0",
+  "private": true,
+  "description": "FLAP scratch lottery contracts and static frontend",
+  "scripts": {
+    "serve": "node scripts/static-server.js"
+  }
+}

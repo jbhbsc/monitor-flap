@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FLAP 历史中奖编号</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="shell history-shell">
+      <section class="topbar">
+        <div>
+          <p class="eyebrow">FLAP Scratch Archive</p>
+          <h1>历史中奖编号</h1>
+          <p class="headline-note">每轮从 0001 开始编号，中奖编号由链上随机产生。</p>
+        </div>
+        <div class="top-actions">
+          <a class="ghost-link" href="./index.html">返回刮刮乐</a>
+        </div>
+      </section>
+
+      <section class="archive-board">
+        <div class="archive-toolbar">
+          <div>
+            <span>查询轮次</span>
+            <strong id="archiveRange">-</strong>
+          </div>
+          <button id="reloadHistoryBtn" class="primary-btn" type="button">刷新</button>
+        </div>
+
+        <div id="historyStatus" class="tx-status">正在读取链上历史...</div>
+        <div id="historyList" class="archive-list"></div>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.5/dist/ethers.umd.min.js"></script>
+    <script src="./config.js"></script>
+    <script src="./history.js"></script>
+  </body>
+</html>
