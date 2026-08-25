@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="DogeHash 狗狗币矿池公开挖矿数据面板" />
+  <title>DogeHash · 狗狗币挖矿面板</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="topline"></div>
+  <header class="nav-shell">
+    <nav class="nav wrap">
+      <a class="brand" href="#" aria-label="DogeHash 首页"><span class="coin-logo">Ð</span><span>DOGE<span>HASH</span></span></a>
+      <div class="account-pill"><span class="pulse-dot"></span><span><b>doge_master_88</b></span></div>
+      <div class="nav-links">
+        <a href="#dashboard">控制台</a><a href="#miners">矿机</a><a href="#earnings">收益</a><a href="#help">挖矿帮助</a>
+      </div>
+      <div class="nav-actions">
+        <button class="icon-btn" id="themeBtn" aria-label="切换主题">☾</button>
+        <a class="x-link" href="https://x.com/Dogeloop8" target="_blank" rel="noopener noreferrer" aria-label="打开 Dogeloop8 的 X 页面" title="Dogeloop8 on X">𝕏</a>
+        <button class="wallet-btn" id="walletBtn"><span class="wallet-icon">◫</span><span id="walletLabel">连接钱包</span></button>
+        <button class="mobile-menu" id="menuBtn" aria-label="菜单">☰</button>
+      </div>
+    </nav>
+  </header>
+
+  <div class="contract-bar" role="status" aria-label="代币合约">
+    <div class="wrap contract-inner">
+      <span class="contract-label">代币合约</span>
+      <code id="tokenContract">待手动配置</code>
+    </div>
+  </div>
+
+  <main id="dashboard">
+    <section class="hero wrap reveal">
+      <div>
+        <div class="eyebrow"><span class="live-dot"></span> DOGECOIN · SCRYPT · PPS+</div>
+        <h1>让每一次哈希，都有迹可循。</h1>
+        <p>狗狗币实时挖矿数据、矿机状态和收益记录，一屏掌握。</p>
+      </div>
+      <div class="network-card">
+        <span class="doge-orbit">Ð</span>
+        <div><small>全网算力</small><strong>1.42 PH/s</strong><span class="up">↗ 3.18%</span></div>
+        <div><small>DOGE 价格</small><strong>¥ 1.67</strong><span class="up">↗ 1.26%</span></div>
+      </div>
+    </section>
+
+    <section class="wrap overview reveal">
+      <div class="section-title"><div><span class="kicker">OVERVIEW</span><h2>账户概览</h2></div><span class="updated"><i></i> 数据刚刚更新</span></div>
+      <div class="stat-grid">
+        <article class="stat-card featured"><span class="stat-icon">Ð</span><small>总收入</small><strong>18,642.38 <em>DOGE</em></strong><div class="mini-trend"><span>≈ ¥31,132.77</span><b>+12.4% 本月</b></div></article>
+        <article class="stat-card"><small>昨日收益 <span class="tip" title="前一自然日的已结算收益">?</span></small><strong>286.45 <em>DOGE</em></strong><div class="spark" data-points="3,6,4,8,7,11,9,13,12,16"></div></article>
+        <article class="stat-card"><small>总支出</small><strong>17,500.00 <em>DOGE</em></strong><div class="spark gold" data-points="2,3,5,4,8,7,10,9,12,14"></div></article>
+        <article class="stat-card"><small>今日已挖（预估） <span class="tip" title="基于当前算力和 PPS+ 模式估算">?</span></small><strong id="todayMined">127.82 <em>DOGE</em></strong><div class="progress"><i style="width:64%"></i></div><span class="progress-label">距今日预估 64%</span></article>
+        <article class="stat-card balance"><small>账户余额 <span class="tip" title="达到起付额后自动支付到绑定钱包">?</span></small><strong>1,142.38 <em>DOGE</em></strong><div><span>起付额 100 DOGE</span><button id="withdrawBtn">支付设置 →</button></div></article>
+      </div>
+    </section>
+
+    <section class="wrap reveal" id="miners">
+      <div class="miner-strip">
+        <div><span class="miner-symbol">⚙</span><div><small>当前算力</small><strong>42.86 GH/s</strong></div></div>
+        <div><small>全部矿机</small><strong>24</strong></div><div><small><i class="status online"></i>在线</small><strong>21</strong></div><div><small><i class="status warning"></i>低效</small><strong>2</strong></div><div><small><i class="status offline"></i>离线</small><strong>1</strong></div>
+      </div>
+    </section>
+
+    <section class="wrap chart-section reveal">
+      <div class="section-title"><div><span class="kicker">ANALYTICS</span><h2>算力图表</h2></div><div class="chart-tabs" role="tablist"><button class="active" data-series="hashrate">算力</button><button data-series="distribution">矿机算力分布</button><button data-series="online">在线矿机走势</button></div></div>
+      <article class="chart-card">
+        <div class="chart-head"><div><small id="chartCaption">过去 24 小时平均算力</small><strong id="chartValue">42.86 <em>GH/s</em></strong></div><div class="range"><button class="active">24 小时</button><button>7 天</button><button>30 天</button></div></div>
+        <div class="canvas-wrap"><canvas id="hashChart" aria-label="狗狗币矿池算力曲线"></canvas><div class="chart-tooltip" id="chartTooltip"></div></div>
+        <div class="chart-legend"><span><i class="legend-main"></i>实时算力</span><span><i class="legend-avg"></i>24h 平均</span></div>
+      </article>
+    </section>
+
+    <section class="wrap data-section reveal" id="earnings">
+      <div class="section-title"><div><span class="kicker">MINING DATA</span><h2>DOGE 挖矿数据</h2></div><button class="export-btn" id="exportBtn">⇩ 导出 CSV</button></div>
+      <div class="data-card">
+        <div class="data-tabs"><button class="active" data-table="workers">矿工</button><button data-table="revenue">收益</button><button data-table="payments">支付</button><label class="search">⌕<input id="tableSearch" placeholder="搜索矿机名称" /></label></div>
+        <div class="table-wrap"><table><thead id="tableHead"></thead><tbody id="tableBody"></tbody></table></div>
+        <div class="table-foot"><span id="tableCount">共 6 条记录</span><div><button disabled>‹</button><button class="active">1</button><button>2</button><button>›</button></div></div>
+      </div>
+    </section>
+
+    <section class="wrap merged reveal">
+      <div><span class="kicker">MERGED MINING</span><h2>联合挖矿收益</h2><p>挖 DOGE 的同时自动获得 LTC，算力不浪费。</p></div>
+      <div class="merged-coin"><span class="ltc">Ł</span><div><small>LTC 账户余额</small><strong>0.084265 LTC</strong></div><b>+0.00182 今日</b></div>
+      <button>查看明细 →</button>
+    </section>
+
+    <section class="help wrap reveal" id="help">
+      <div class="section-title"><div><span class="kicker">GET STARTED</span><h2>挖矿帮助</h2></div></div>
+      <div class="help-grid"><a href="#"><span>01</span><b>配置 DOGE 矿机</b><small>3 分钟快速接入</small><i>→</i></a><a href="#"><span>02</span><b>收益与支付规则</b><small>了解 PPS+ 结算</small><i>→</i></a><a href="#"><span>03</span><b>常见问题</b><small>矿机离线、算力波动</small><i>→</i></a></div>
+    </section>
+  </main>
+
+  <footer><div class="wrap footer-grid"><div><a class="brand light" href="#"><span class="coin-logo">Ð</span><span>DOGE<span>HASH</span></span></a><p>透明、稳定、面向全球的狗狗币矿池。</p><div class="social"><a>𝕏</a><a>◉</a><a>✈</a><a>♟</a></div></div><div><b>矿池产品</b><a href="#dashboard">数据面板</a><a href="#miners">矿机管理</a><a href="#earnings">收益记录</a></div><div><b>服务支持</b><a href="#help">挖矿教程</a><a href="#help">API 文档</a><a href="#help">费率说明</a></div><div><b>关于我们</b><a href="#">服务条款</a><a href="#">隐私政策</a><a href="#">联系我们</a></div></div><div class="wrap copyright"><span>© 2026 DogeHash. All rights reserved.</span><span>网络状态 <i></i> 正常 · 区块高度 5,982,104</span></div></footer>
+
+  <div class="modal" id="walletModal" aria-hidden="true"><div class="modal-backdrop" data-close></div><div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="walletTitle"><button class="close" data-close>×</button><span class="modal-doge">Ð</span><h2 id="walletTitle">连接你的钱包</h2><p>绑定 DOGE 收款地址，所有信息仅保存在此浏览器。</p><button class="wallet-option" id="browserWallet"><span>🦊</span><div><b>浏览器钱包</b><small>MetaMask / OKX Wallet</small></div><i>→</i></button><div class="divider"><span>或使用 DOGE 地址</span></div><label class="address-field"><span>钱包地址</span><input id="dogeAddress" placeholder="D... / A... / 9..." maxlength="48" /><small id="addressError"></small></label><button class="connect-submit" id="connectSubmit">连接钱包</button><p class="secure">🔒 本页面不会请求或保存你的私钥</p></div></div>
+  <div class="toast" id="toast"><span>✓</span><div><b>操作成功</b><small></small></div></div>
+  <script src="app.js"></script>
+</body>
+</html>
