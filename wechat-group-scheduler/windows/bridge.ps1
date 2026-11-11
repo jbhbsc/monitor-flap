@@ -23,6 +23,10 @@ public static class NativeWechat {
   [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr h,int n);
   [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr h);
   [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
+  [DllImport("user32.dll")] static extern bool BringWindowToTop(IntPtr h);
+  [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr h,out uint processId);
+  [DllImport("user32.dll")] static extern bool AttachThreadInput(uint from,uint to,bool attach);
+  [DllImport("kernel32.dll")] static extern uint GetCurrentThreadId();
   [DllImport("user32.dll")] public static extern bool SetCursorPos(int x,int y);
   [DllImport("user32.dll")] public static extern void mouse_event(uint f,uint x,uint y,uint d,UIntPtr e);
   [DllImport("user32.dll")] static extern IntPtr OpenInputDesktop(uint f,bool i,uint a);
@@ -32,6 +36,20 @@ public static class NativeWechat {
     IntPtr h=OpenInputDesktop(0,false,1); if(h==IntPtr.Zero)return false;
     try {var b=new StringBuilder(256);int n;return GetUserObjectInformation(h,2,b,512,out n)&&b.ToString()=="Default";}
     finally{CloseDesktop(h);}
+  }
+  public static bool TryActivateWindow(IntPtr h) {
+    if(GetForegroundWindow()==h)return true;
+    SetForegroundWindow(h);
+    if(GetForegroundWindow()==h)return true;
+    // Background-launched PowerShell may be denied foreground activation.
+    // Share the current foreground input queue briefly; never inject Alt or click another app.
+    uint processId;
+    uint foregroundThread=GetWindowThreadProcessId(GetForegroundWindow(),out processId);
+    uint currentThread=GetCurrentThreadId();
+    bool attached=foregroundThread!=0&&foregroundThread!=currentThread&&AttachThreadInput(currentThread,foregroundThread,true);
+    try {BringWindowToTop(h);SetForegroundWindow(h);}
+    finally {if(attached)AttachThreadInput(currentThread,foregroundThread,false);}
+    return GetForegroundWindow()==h;
   }
   public static Bitmap Capture(IntPtr h) {
     RECT r;if(!GetWindowRect(h,out r))throw new Exception("Cannot read window rectangle");
@@ -99,6 +117,7 @@ public static class NativeWechat {
 }
 '@ -ReferencedAssemblies System.Drawing
     [void][NativeWechat]::SetProcessDPIAware()
+    . (Join-Path $PSScriptRoot 'foreground.ps1')
 
     function Get-WechatWindow {
         if (-not [NativeWechat]::DesktopReady()) { throw 'Windows 桌面已锁定或不可操作，请先解锁' }
@@ -111,13 +130,8 @@ public static class NativeWechat {
         if ($candidates.Count -ne 1) { throw "需要唯一的微信主窗口，当前找到 $($candidates.Count) 个；请登录微信并关闭多余微信窗口" }
         $h = $candidates[0].MainWindowHandle
         if ([NativeWechat]::IsIconic($h)) { [void][NativeWechat]::ShowWindow($h,9) }
-        [void][NativeWechat]::SetForegroundWindow($h)
-        Start-Sleep -Milliseconds 400
-        Assert-Foreground $h
+        Activate-WechatWindow $h
         return $h
-    }
-    function Assert-Foreground($h) {
-        if (-not [NativeWechat]::DesktopReady() -or [NativeWechat]::GetForegroundWindow() -ne $h) { throw '微信没有处于前台或被其他窗口打断，已停止' }
     }
     function Click-Point($h,$point) {
         Assert-Foreground $h

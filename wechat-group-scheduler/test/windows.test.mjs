@@ -2,7 +2,18 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { deflateSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import { fileURLToPath } from 'node:url';
 import { bridge } from '../src/bridge.mjs';
+
+test('Windows前台激活：延迟可恢复、拒绝有上限、锁屏与操作中断立即停止', {skip:process.platform!=='win32',timeout:30000},async()=>{
+  const {stdout}=await promisify(execFile)('powershell.exe',[
+    '-NoLogo','-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',
+    fileURLToPath(new URL('./foreground-fixture.ps1',import.meta.url)),
+  ],{windowsHide:true,encoding:'utf8'});
+  assert.deepEqual(JSON.parse(stdout.trim().replace(/^\uFEFF/,'')),{ok:true,checks:6});
+});
 
 // A synthetic two-row bitmap. This test only runs the offline "bind" action:
 // it never captures the desktop, opens WeChat, moves the mouse, or types.
