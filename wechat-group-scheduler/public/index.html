@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>微信定时群聊助手</title><link rel="stylesheet" href="/style.css"></head>
+<body>
+<main>
+  <header><div><span class="eyebrow">LOCAL · WINDOWS · 北京时间</span><h1>微信定时群聊助手</h1><p>同一份文字，按顺序发送到你的群聊。</p></div><span id="state" class="badge">正在连接</span></header>
+  <section id="deploymentNotice" class="card deployment-notice" hidden aria-labelledby="deploymentTitle"><h2 id="deploymentTitle">在线页面预览</h2><p>微信发送服务需要在安装微信的 Windows 电脑上运行。此在线页面展示操作界面，不能连接或操作你的微信；配置、截图、模拟和真实发送均需打开本机页面。</p><p>在项目文件夹中双击 <strong>start.cmd</strong>，启动后点击下面的本机入口。</p><a class="local-link" href="http://127.0.0.1:8787/" target="_blank" rel="noopener noreferrer">打开本机操作页面</a><p class="hint">本机入口仅在当前电脑已启动服务时可用。群名单、消息、截图与日志不会上传到本站。</p></section>
+  <div id="notice" role="status" hidden></div>
+  <section class="summary"><div><small>每天发送时段</small><strong id="hours">07:00 — 20:00</strong></div><div><small>轮次 / 每日条数</small><strong id="volume">14 轮 / 0 条</strong></div><div><small>群与群之间</small><strong id="gap">60 秒</strong></div><div><small>本机北京时间</small><strong id="clock">—</strong></div></section>
+  <div class="columns">
+    <section class="card"><h2>01 · 配置任务</h2><form id="configForm">
+      <label for="groups">群聊名称 <span>每行一个，名称必须唯一</span></label><textarea id="groups" rows="7" placeholder="例如：项目通知群&#10;团队交流群&#10;客户服务群" maxlength="4000"></textarea>
+      <label for="message">统一发送文字 <span>支持换行，最多 4000 字</span></label><textarea id="message" rows="6" maxlength="4000" placeholder="填写所有群共用的消息内容"></textarea>
+      <div class="fields schedule-fields"><label>开始时间<input id="startTime" type="time" value="07:00" step="60" required></label><label>结束时间（轮次启动上限）<input id="endTime" type="time" value="20:00" step="60" required></label><label>轮次单位<select id="roundUnit"><option value="hour">按时 · 每小时一轮</option><option value="minute">按分 · 每分钟一轮</option></select></label><label>群间隔（秒）<input id="interval" type="number" min="1" max="1800" value="60" required></label></div>
+      <p class="hint">按时：07:35、08:35…；按分：07:35、07:36…。结束时间限制每轮的启动时间，轮内其他群可稍后发送。每分钟模式请缩短群间隔；实际操作较慢时会跳过过期任务，不会并行操作微信。</p>
+      <p id="scheduleHint" class="hint"></p>
+      <button class="primary" type="submit">保存配置</button>
+    </form></section>
+    <section class="card"><h2>02 · 运行与预览</h2><p class="hint">模拟模式只记录排程，不操作微信。真实模式需要每个群完成图像绑定。服务重启后保持停止。</p>
+      <div class="actions"><button id="dryStart">启动模拟</button><button id="realStart" class="primary">启动真实发送</button><button id="stop" class="danger">停止任务</button></div>
+      <div class="manual-panel"><h3>手动发送</h3><p class="hint">立即执行一次，不受每天的时间范围限制；结束后自动停止。需先停止定时任务。</p><label for="manualGroup">发送到</label><select id="manualGroup"><option value="all">全部群 · 发送一轮</option></select><div class="actions"><button id="manualDry">手动模拟一轮</button><button id="manualReal" class="primary">手动发送</button></div><div id="manualFeedback" class="feedback" role="status" aria-live="polite" hidden></div><div id="manualSetup" class="setup-hint" hidden><p id="manualReadiness"></p><button id="goToBinding" type="button">前往校准与绑定</button></div></div>
+      <div id="error" class="error" hidden></div>
+      <div id="manualProgress" class="feedback" role="status" aria-live="polite" hidden></div>
+      <div id="bindingList" class="bindings"></div>
+      <details open><summary>今天的发送时间表</summary><div class="table-scroll"><table><thead><tr><th>轮次</th><th>首个群</th><th>最后一个群</th><th>条数</th></tr></thead><tbody id="plan"></tbody></table></div></details>
+    </section>
+  </div>
+  <section class="card" id="bindingSection"><h2>03 · 首次校准与群绑定</h2>
+    <p>先在微信中手动打开目标群，清空输入框，并点击窗口里一处无功能的空白位置，使输入框失去焦点。保持微信窗口尺寸和显示器缩放不变，再获取截图。</p>
+    <div class="actions"><label>当前绑定的群<select id="bindGroup"><option>请先保存群名单</option></select></label><button id="capture">获取微信截图</button><button id="resetLayout">重新框选布局</button><button id="resetBinding" class="danger" type="button">重置当前群绑定</button><button id="resetAllBindings" class="danger" type="button">重置全部绑定</button></div>
+    <p class="hint">重置当前群只清除该群绑定；重置全部会同时清除校准布局。群名单、文案、时间设置和发送记录会保留。运行中请先停止任务。</p>
+    <p id="selectedBindingStatus" class="hint" role="status"></p>
+    <div id="captureFeedback" class="feedback" role="status" aria-live="polite" hidden></div>
+    <p class="hint">截图会临时切到微信，程序会移开鼠标并等待悬停的语音输入提示消失；期间不要移动鼠标。返回页面后，在截图上框选 / 点击。标题框只包含完整群名（建议包含人数），不要包含时间或聊天内容。输入区域框应覆盖全部文字编辑区域，不含工具栏和发送按钮。若旧截图有提示文字，需重新获取截图，直接点保存不会更新图片。</p>
+    <div id="calibration" hidden>
+      <div class="steps"><button data-step="title">① 框选群标题</button><button data-step="draft">② 框选空白输入区域</button><button data-step="neutral">③ 点击无功能的空白处</button><button data-step="editor">④ 点击文字输入位置</button><button data-step="send">⑤ 点击发送按钮中心</button></div>
+      <p id="stepHelp" class="hint"></p><div class="canvas-scroll"><canvas id="canvas"></canvas></div>
+      <p id="selectionInfo" class="hint"></p>
+      <label class="check"><input type="checkbox" id="bindConfirm">我已确认：截图是所选群聊，完整群名可区分，输入框为空，③的位置不会触发任何功能。</label>
+      <button id="bind" class="primary">保存这个群的绑定</button>
+      <div id="bindFeedback" class="feedback" role="status" aria-live="polite" hidden></div>
+      <p class="hint">其他群使用相同布局。逐个打开群、清空输入框并失焦、重新截图、确认绑定即可，不需要重复框选。截图只在本机内存短暂保存，绑定仅保存图像指纹。</p>
+    </div>
+  </section>
+  <section class="card"><div class="section-head"><h2>执行日志</h2><small>“已执行发送”不代表已送达或已读</small></div><div id="logs" class="logs"><p class="hint">暂无记录</p></div></section>
+  <footer>仅本机访问 · 运行期间保持电脑开机、桌面解锁、微信登录。操作微信时会占用鼠标、键盘和剪贴板。</footer>
+</main>
+<dialog id="confirmDialog"><h2 id="confirmTitle">核对真实发送任务</h2><p id="confirmSummary"></p><pre id="confirmGroups"></pre><label>每个群收到的文字</label><pre id="confirmMessage"></pre><p class="hint">请先检查绑定的群标题。确认后会按所选方式操作微信；任何异常都会停止，不自动重试。</p><div id="confirmFeedback" class="feedback" role="alert" hidden></div><div class="actions"><button id="cancelReal">返回修改</button><button id="confirmReal" class="primary">确认并启动真实发送</button></div></dialog>
+<script src="/bootstrap.js" type="module"></script>
+</body></html>
